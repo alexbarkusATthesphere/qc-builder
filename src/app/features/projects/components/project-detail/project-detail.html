@@ -1,1 +1,184 @@
-<p>project-detail works!</p>
+@if (loading()) {
+  <div class="pd__loading">
+    <div class="pd__spinner"></div>
+    <span>Loading project…</span>
+  </div>
+} @else if (project(); as proj) {
+  <div class="pd">
+    <!-- Back nav -->
+    <button class="pd__back" (click)="goBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" class="pd__back-icon">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Projects
+    </button>
+
+    <!-- ===== Header ===== -->
+    <header class="pd__header">
+      <div class="pd__header-left">
+        <h1 class="pd__name">{{ proj.name }}</h1>
+        @if (proj.description) {
+          <p class="pd__desc">{{ proj.description }}</p>
+        }
+        <div class="pd__meta">
+          <app-status-badge
+            [label]="formatProjectStatus(proj.status)"
+            [color]="getStatusColor(proj.status)"
+          />
+          @if (proj.owner) {
+            <span class="pd__owner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" class="pd__meta-icon">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+              {{ proj.owner }}
+            </span>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== Status summary cards ===== -->
+    <div class="pd__stats">
+      @for (s of statusSummary(); track s.id) {
+        <div
+          class="pd__stat-card"
+          [class.pd__stat-card--active]="filterComponent() === null && filterCategory() === null && filterPriority() === null"
+        >
+          <div class="pd__stat-dot" [style.background]="s.color"></div>
+          <div class="pd__stat-info">
+            <span class="pd__stat-count">{{ s.count }}</span>
+            <span class="pd__stat-label">{{ s.name }}</span>
+          </div>
+        </div>
+      }
+      <div class="pd__stat-card pd__stat-card--total">
+        <div class="pd__stat-info">
+          <span class="pd__stat-count">{{ tasks().length }}</span>
+          <span class="pd__stat-label">Total</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Toolbar: view toggle + filters ===== -->
+    <div class="pd__toolbar">
+      <div class="pd__toolbar-left">
+        <!-- View toggle -->
+        <div class="pd__view-toggle">
+          <button
+            class="pd__view-btn"
+            [class.pd__view-btn--active]="viewMode() === 'board'"
+            (click)="setViewMode('board')"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="pd__view-icon">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Board
+          </button>
+          <button
+            class="pd__view-btn"
+            [class.pd__view-btn--active]="viewMode() === 'table'"
+            (click)="setViewMode('table')"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="pd__view-icon">
+              <line x1="8" y1="6" x2="21" y2="6"/>
+              <line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/>
+              <line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+            Table
+          </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="pd__filters">
+          <select
+            class="pd__filter-select"
+            [value]="filterComponent() ?? ''"
+            (change)="setFilterComponent($any($event.target).value ? +$any($event.target).value : null)"
+          >
+            <option value="">All Components</option>
+            @for (c of components(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+
+          <select
+            class="pd__filter-select"
+            [value]="filterCategory() ?? ''"
+            (change)="setFilterCategory($any($event.target).value ? +$any($event.target).value : null)"
+          >
+            <option value="">All Categories</option>
+            @for (c of categories(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+
+          <select
+            class="pd__filter-select"
+            [value]="filterPriority() ?? ''"
+            (change)="setFilterPriority($any($event.target).value || null)"
+          >
+            <option value="">All Priorities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+
+          @if (activeFilterCount() > 0) {
+            <button class="pd__filter-clear" (click)="clearFilters()">
+              Clear ({{ activeFilterCount() }})
+            </button>
+          }
+        </div>
+      </div>
+
+      <span class="pd__task-count">
+        {{ filteredTasks().length }} of {{ tasks().length }} tasks
+      </span>
+    </div>
+
+    <!-- ===== Task views ===== -->
+    <div class="pd__content">
+      @if (viewMode() === 'board') {
+        <app-task-board
+          [tasks]="filteredTasks()"
+          [statuses]="statuses()"
+          [categories]="categories()"
+          [components]="components()"
+          (taskClicked)="onTaskClicked($event)"
+        />
+      } @else {
+        <app-task-list
+          [tasks]="filteredTasks()"
+          [statuses]="statuses()"
+          [categories]="categories()"
+          [components]="components()"
+          (taskClicked)="onTaskClicked($event)"
+        />
+      }
+    </div>
+
+    <!-- ===== Task detail slide-over ===== -->
+    @if (panelOpen()) {
+      <app-task-detail-panel
+        [task]="selectedTask()"
+        [loading]="panelLoading()"
+        [statuses]="statuses()"
+        [categories]="categories()"
+        [components]="components()"
+        (closed)="closePanel()"
+      />
+    }
+  </div>
+}

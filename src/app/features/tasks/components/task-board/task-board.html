@@ -1,1 +1,57 @@
-<p>task-board works!</p>
+<div class="tb">
+  @for (col of columns(); track col.status.id) {
+    <div class="tb__column">
+      <!-- Column header -->
+      <div class="tb__col-header">
+        <div class="tb__col-title">
+          <span class="tb__col-dot" [style.background]="col.status.color"></span>
+          <span class="tb__col-name">{{ col.status.name }}</span>
+          <span class="tb__col-count">{{ col.tasks.length }}</span>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="tb__cards">
+        @for (task of col.tasks; track task.id) {
+          <article class="tb__card" (click)="onCardClick(task)">
+            <!-- Title -->
+            <h3 class="tb__card-title">{{ task.title }}</h3>
+
+            <!-- Tags row -->
+            <div class="tb__card-tags">
+              <span
+                class="tb__tag"
+                [style.color]="getCategoryColor(task.category_id)"
+                [style.background]="getCategoryColor(task.category_id) + '18'"
+              >
+                {{ getCategoryName(task.category_id) }}
+              </span>
+
+              @if (getComponentName(task.component_id); as compName) {
+                <span class="tb__tag tb__tag--component">{{ compName }}</span>
+              }
+            </div>
+
+            <!-- Footer: priority + assignee -->
+            <div class="tb__card-footer">
+              <span class="tb__priority" [class]="getPriorityClass(task.priority)">
+                {{ formatPriority(task.priority) }}
+              </span>
+
+              @if (task.assignee) {
+                <span class="tb__assignee">
+                  <span class="tb__avatar">{{ task.assignee.charAt(0).toUpperCase() }}</span>
+                  {{ task.assignee }}
+                </span>
+              } @else {
+                <span class="tb__assignee tb__assignee--none">Unassigned</span>
+              }
+            </div>
+          </article>
+        } @empty {
+          <div class="tb__empty">No tasks</div>
+        }
+      </div>
+    </div>
+  }
+</div>

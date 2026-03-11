@@ -1,1 +1,64 @@
-<p>data-table works!</p>
+<!-- Search bar -->
+@if (searchable()) {
+  <div class="dt-toolbar">
+    <div class="dt-search">
+      <svg class="dt-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        class="dt-search__input"
+        type="text"
+        [placeholder]="searchPlaceholder()"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+    </div>
+    <span class="dt-count">{{ countLabel() }}</span>
+  </div>
+}
+
+<!-- Table -->
+<div class="dt-wrapper">
+  <table class="dt-table">
+    <thead>
+      <tr>
+        @for (col of columns(); track col.field) {
+          <th
+            class="dt-th"
+            [class.dt-th--sortable]="col.sortable !== false"
+            [style.width]="col.width ?? 'auto'"
+            (click)="toggleSort(col)"
+          >
+            <div class="dt-th__content">
+              <span>{{ col.header }}</span>
+              @if (col.sortable !== false) {
+                <span class="dt-th__sort" [class.dt-th__sort--active]="sort().field === col.field && sort().direction">
+                  {{ getSortIcon(col) }}
+                </span>
+              }
+            </div>
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of displayData(); track $index) {
+        <tr class="dt-row" (click)="onRowClick(row)">
+          @for (col of columns(); track col.field) {
+            <td class="dt-td">
+              {{ getCellValue(row, col.field) }}
+            </td>
+          }
+        </tr>
+      } @empty {
+        <tr>
+          <td class="dt-empty" [attr.colspan]="columns().length">
+            {{ emptyMessage() }}
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

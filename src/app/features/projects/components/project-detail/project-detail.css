@@ -1,0 +1,257 @@
+/* =========================================================================
+   Project Detail
+   ========================================================================= */
+
+.pd {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 100%;
+}
+
+/* Loading */
+.pd__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.pd__spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Back button */
+.pd__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.pd__back:hover {
+  color: #3b82f6;
+}
+
+.pd__back-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Header */
+.pd__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.pd__name {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.pd__desc {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+  margin-top: 8px;
+  max-width: 720px;
+}
+
+.pd__meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.pd__owner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.pd__meta-icon {
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+}
+
+/* Stats */
+.pd__stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pd__stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  min-width: 120px;
+}
+
+.pd__stat-card--total {
+  background: #f8fafc;
+  border-style: dashed;
+}
+
+.pd__stat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pd__stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.pd__stat-count {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.pd__stat-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Toolbar */
+.pd__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pd__toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* View toggle */
+.pd__view-toggle {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.pd__view-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pd__view-btn:hover {
+  color: #334155;
+}
+
+.pd__view-btn--active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.pd__view-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Filters */
+.pd__filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pd__filter-select {
+  padding: 6px 28px 6px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.pd__filter-select:focus {
+  border-color: #3b82f6;
+}
+
+.pd__filter-clear {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pd__filter-clear:hover {
+  background: #fee2e2;
+}
+
+.pd__task-count {
+  font-size: 13px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+/* Content */
+.pd__content {
+  min-height: 400px;
+}

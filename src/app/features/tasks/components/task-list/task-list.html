@@ -1,1 +1,72 @@
-<p>task-list works!</p>
+<!-- Search -->
+<div class="tl__toolbar">
+  <div class="tl__search">
+    <svg class="tl__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input
+      class="tl__search-input"
+      type="text"
+      placeholder="Search tasks..."
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+    />
+  </div>
+  <span class="tl__count">{{ displayTasks().length }} tasks</span>
+</div>
+
+<!-- Table -->
+<div class="tl__wrapper">
+  <table class="tl__table">
+    <thead>
+      <tr>
+        <th class="tl__th tl__th--sortable" (click)="toggleSort('title')" style="width:35%">
+          Title <span class="tl__sort-icon">{{ getSortIcon('title') }}</span>
+        </th>
+        <th class="tl__th tl__th--sortable" (click)="toggleSort('status')">
+          Status <span class="tl__sort-icon">{{ getSortIcon('status') }}</span>
+        </th>
+        <th class="tl__th tl__th--sortable" (click)="toggleSort('priority')">
+          Priority <span class="tl__sort-icon">{{ getSortIcon('priority') }}</span>
+        </th>
+        <th class="tl__th tl__th--sortable" (click)="toggleSort('category')">
+          Category <span class="tl__sort-icon">{{ getSortIcon('category') }}</span>
+        </th>
+        <th class="tl__th tl__th--sortable" (click)="toggleSort('component')">
+          Component <span class="tl__sort-icon">{{ getSortIcon('component') }}</span>
+        </th>
+        <th class="tl__th tl__th--sortable" (click)="toggleSort('assignee')">
+          Assignee <span class="tl__sort-icon">{{ getSortIcon('assignee') }}</span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (task of displayTasks(); track task.id) {
+        <tr class="tl__row" (click)="onRowClick(task)">
+          <td class="tl__td tl__td--title">{{ task.title }}</td>
+          <td class="tl__td">
+            <app-status-badge
+              [label]="getStatusName(task.status_id)"
+              [color]="getStatusColor(task.status_id)"
+              size="sm"
+            />
+          </td>
+          <td class="tl__td">
+            <span class="tl__priority" [class]="getPriorityClass(task.priority)">
+              {{ formatPriority(task.priority) }}
+            </span>
+          </td>
+          <td class="tl__td tl__td--dim">{{ getCategoryName(task.category_id) }}</td>
+          <td class="tl__td tl__td--dim">{{ getComponentName(task.component_id) }}</td>
+          <td class="tl__td tl__td--dim">{{ task.assignee ?? 'Unassigned' }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td class="tl__empty" colspan="6">No tasks match your search.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

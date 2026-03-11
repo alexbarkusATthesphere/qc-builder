@@ -1,1 +1,134 @@
-<p>task-detail works!</p>
+<!-- Overlay + Panel -->
+<div class="tdp__overlay" (click)="onOverlayClick($event)">
+  <aside class="tdp__panel">
+    <!-- Header -->
+    <div class="tdp__header">
+      <h2 class="tdp__heading">Task Details</h2>
+      <button class="tdp__close" (click)="close()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="tdp__close-icon">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="tdp__loading">
+        <div class="tdp__spinner"></div>
+        <span>Loading task…</span>
+      </div>
+    }
+
+    <!-- Content -->
+    @if (task(); as t) {
+      <div class="tdp__body">
+        <!-- Title + Status -->
+        <div class="tdp__title-row">
+          <h3 class="tdp__title">{{ t.title }}</h3>
+          <app-status-badge
+            [label]="getStatusName(t.status_id)"
+            [color]="getStatusColor(t.status_id)"
+          />
+        </div>
+
+        <!-- Description -->
+        @if (t.description) {
+          <div class="tdp__section">
+            <h4 class="tdp__section-label">Description</h4>
+            <p class="tdp__description">{{ t.description }}</p>
+          </div>
+        }
+
+        <!-- Properties grid -->
+        <div class="tdp__props">
+          <div class="tdp__prop">
+            <span class="tdp__prop-label">Priority</span>
+            <span class="tdp__priority-val" [class]="getPriorityClass(t.priority)">
+              {{ formatPriority(t.priority) }}
+            </span>
+          </div>
+          <div class="tdp__prop">
+            <span class="tdp__prop-label">Category</span>
+            <span class="tdp__prop-value">{{ getCategoryName(t.category_id) }}</span>
+          </div>
+          <div class="tdp__prop">
+            <span class="tdp__prop-label">Component</span>
+            <span class="tdp__prop-value">{{ getComponentName(t.component_id) }}</span>
+          </div>
+          <div class="tdp__prop">
+            <span class="tdp__prop-label">Assignee</span>
+            <span class="tdp__prop-value">{{ t.assignee ?? 'Unassigned' }}</span>
+          </div>
+          <div class="tdp__prop">
+            <span class="tdp__prop-label">Start Date</span>
+            <span class="tdp__prop-value">{{ formatShortDate(t.start_date) }}</span>
+          </div>
+          <div class="tdp__prop">
+            <span class="tdp__prop-label">Due Date</span>
+            <span class="tdp__prop-value">{{ formatShortDate(t.due_date) }}</span>
+          </div>
+          <div class="tdp__prop">
+            <span class="tdp__prop-label">Created</span>
+            <span class="tdp__prop-value">{{ formatDate(t.created_at) }}</span>
+          </div>
+          <div class="tdp__prop">
+            <span class="tdp__prop-label">Updated</span>
+            <span class="tdp__prop-value">{{ formatDate(t.updated_at) }}</span>
+          </div>
+        </div>
+
+        <!-- Comments -->
+        <div class="tdp__section">
+          <h4 class="tdp__section-label">
+            Comments
+            <span class="tdp__section-count">{{ t.comments.length }}</span>
+          </h4>
+          @if (t.comments.length > 0) {
+            <div class="tdp__comments">
+              @for (comment of t.comments; track comment.id) {
+                <div class="tdp__comment">
+                  <div class="tdp__comment-header">
+                    <span class="tdp__comment-avatar">{{ comment.author.charAt(0).toUpperCase() }}</span>
+                    <span class="tdp__comment-author">{{ comment.author }}</span>
+                    <span class="tdp__comment-date">{{ formatDate(comment.created_at) }}</span>
+                  </div>
+                  <p class="tdp__comment-body">{{ comment.body }}</p>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="tdp__empty-text">No comments yet.</p>
+          }
+        </div>
+
+        <!-- History -->
+        <div class="tdp__section">
+          <h4 class="tdp__section-label">
+            Recent History
+            <span class="tdp__section-count">{{ t.recent_history.length }}</span>
+          </h4>
+          @if (t.recent_history.length > 0) {
+            <div class="tdp__history">
+              @for (entry of t.recent_history; track entry.id) {
+                <div class="tdp__history-item">
+                  <span class="tdp__history-field">{{ entry.field_changed }}</span>
+                  changed from
+                  <span class="tdp__history-val">{{ entry.old_value ?? '—' }}</span>
+                  to
+                  <span class="tdp__history-val">{{ entry.new_value ?? '—' }}</span>
+                  <span class="tdp__history-meta">
+                    by {{ entry.changed_by }} · {{ formatDate(entry.changed_at) }}
+                  </span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="tdp__empty-text">No history recorded.</p>
+          }
+        </div>
+      </div>
+    }
+  </aside>
+</div>
