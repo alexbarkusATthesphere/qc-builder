@@ -1,1 +1,29 @@
-<p>activity-feed works!</p>
+<div class="af">
+  @for (item of items(); track item.id) {
+    <div class="af__item">
+      <div class="af__timeline">
+        <span class="af__dot" [style.background]="item.statusColor"></span>
+        <span class="af__line"></span>
+      </div>
+      <div class="af__content">
+        <p class="af__title">{{ item.title }}</p>
+        <div class="af__meta">
+          <app-status-badge
+            [label]="item.statusName"
+            [color]="item.statusColor"
+            size="sm"
+          />
+          <span class="af__priority" [class]="getPriorityClass(item.priority)">
+            {{ formatPriority(item.priority) }}
+          </span>
+          @if (item.categoryName) {
+            <span class="af__category">{{ item.categoryName }}</span>
+          }
+        </div>
+        <span class="af__time">{{ formatTime(item.timestamp) }}</span>
+      </div>
+    </div>
+  } @empty {
+    <p class="af__empty">No recent activity.</p>
+  }
+</div>

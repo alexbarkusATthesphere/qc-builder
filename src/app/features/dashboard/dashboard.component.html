@@ -1,0 +1,182 @@
+@if (loading()) {
+  <div class="db__loading">
+    <div class="db__spinner"></div>
+    <span>Loading dashboard…</span>
+  </div>
+} @else {
+  <div class="db">
+    <!-- ===== Header ===== -->
+    <div class="db__header">
+      <div>
+        <h1 class="db__title">Dashboard</h1>
+        <p class="db__subtitle">Project health at a glance</p>
+      </div>
+    </div>
+
+    <!-- ===== Hero metric cards ===== -->
+    <div class="db__hero">
+      <div class="db__metric">
+        <div class="db__metric-icon db__metric-icon--total">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          </svg>
+        </div>
+        <div class="db__metric-data">
+          <span class="db__metric-value">{{ totalTasks() }}</span>
+          <span class="db__metric-label">Total Tasks</span>
+        </div>
+      </div>
+
+      <div class="db__metric">
+        <div class="db__metric-icon db__metric-icon--complete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div class="db__metric-data">
+          <span class="db__metric-value">{{ completionPercent() }}<small>%</small></span>
+          <span class="db__metric-label">Complete ({{ completedTasks() }})</span>
+        </div>
+      </div>
+
+      <div class="db__metric">
+        <div class="db__metric-icon db__metric-icon--progress">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="2" x2="12" y2="6"/>
+            <line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
+            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+            <line x1="2" y1="12" x2="6" y2="12"/>
+            <line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+        </div>
+        <div class="db__metric-data">
+          <span class="db__metric-value">{{ inProgressTasks() }}</span>
+          <span class="db__metric-label">In Progress</span>
+        </div>
+      </div>
+
+      <div class="db__metric">
+        <div class="db__metric-icon db__metric-icon--blocked">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+          </svg>
+        </div>
+        <div class="db__metric-data">
+          <span class="db__metric-value">{{ blockedTasks() }}</span>
+          <span class="db__metric-label">Blocked</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Two-column: charts + activity ===== -->
+    <div class="db__grid">
+      <!-- Left column -->
+      <div class="db__charts">
+        <!-- Status breakdown bar -->
+        <section class="db__card">
+          <h2 class="db__card-title">Status Breakdown</h2>
+          <div class="db__status-bar">
+            @for (s of statusBreakdown(); track s.name) {
+              @if (s.count > 0) {
+                <div
+                  class="db__status-segment"
+                  [style.width.%]="s.percent"
+                  [style.background]="s.color"
+                  [title]="s.name + ': ' + s.count"
+                ></div>
+              }
+            }
+          </div>
+          <div class="db__status-legend">
+            @for (s of statusBreakdown(); track s.name) {
+              <div class="db__legend-item">
+                <span class="db__legend-dot" [style.background]="s.color"></span>
+                <span class="db__legend-label">{{ s.name }}</span>
+                <span class="db__legend-count">{{ s.count }}</span>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Component progress -->
+        <section class="db__card">
+          <h2 class="db__card-title">Component Progress</h2>
+          <div class="db__components">
+            @for (c of componentProgress(); track c.name) {
+              <div class="db__comp-row">
+                <div class="db__comp-header">
+                  <span class="db__comp-name">{{ c.name }}</span>
+                  <span class="db__comp-stat">
+                    {{ c.done }}/{{ c.total }}
+                    @if (c.blocked > 0) {
+                      <span class="db__comp-blocked">· {{ c.blocked }} blocked</span>
+                    }
+                  </span>
+                </div>
+                <div class="db__progress-track">
+                  <div
+                    class="db__progress-fill"
+                    [style.width.%]="c.percent"
+                    [class.db__progress-fill--complete]="c.percent === 100"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Priority distribution -->
+        <section class="db__card">
+          <h2 class="db__card-title">Priority Distribution</h2>
+          <div class="db__priorities">
+            @for (p of priorityBreakdown(); track p.key) {
+              <div class="db__pri-row">
+                <div class="db__pri-header">
+                  <span class="db__pri-dot" [style.background]="p.color"></span>
+                  <span class="db__pri-label">{{ p.label }}</span>
+                  <span class="db__pri-count">{{ p.count }}</span>
+                </div>
+                <div class="db__pri-track">
+                  <div
+                    class="db__pri-fill"
+                    [style.width.%]="p.percent"
+                    [style.background]="p.color"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+
+      <!-- Right column -->
+      <div class="db__sidebar">
+        <!-- Project cards -->
+        <section class="db__card">
+          <h2 class="db__card-title">Projects</h2>
+          @for (pd of projectsData(); track pd.project.id) {
+            <app-project-summary-card
+              [project]="pd.project"
+              [statuses]="pd.statuses"
+              [tasks]="pd.tasks"
+              (clicked)="navigateToProject(pd.project.id)"
+            />
+          }
+        </section>
+
+        <!-- Activity feed -->
+        <section class="db__card">
+          <h2 class="db__card-title">Recent Activity</h2>
+          <app-activity-feed [items]="activityItems()" />
+        </section>
+      </div>
+    </div>
+  </div>
+}

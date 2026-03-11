@@ -1,0 +1,353 @@
+/* =========================================================================
+   Dashboard
+   ========================================================================= */
+
+.db {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 1280px;
+}
+
+/* Loading */
+.db__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.db__spinner {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Header */
+.db__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.db__title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+}
+
+.db__subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* ── Hero metric cards ── */
+
+.db__hero {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.db__metric {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  transition: box-shadow 0.15s ease;
+}
+
+.db__metric:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.db__metric-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.db__metric-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.db__metric-icon--total {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.db__metric-icon--complete {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+.db__metric-icon--progress {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.db__metric-icon--blocked {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.db__metric-data {
+  display: flex;
+  flex-direction: column;
+}
+
+.db__metric-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.db__metric-value small {
+  font-size: 18px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.db__metric-label {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* ── Two-column grid ── */
+
+.db__grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+.db__charts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.db__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Card container ── */
+
+.db__card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.db__card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  margin-bottom: 20px;
+}
+
+/* ── Status breakdown bar ── */
+
+.db__status-bar {
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.db__status-segment {
+  border-radius: 7px;
+  min-width: 4px;
+  transition: opacity 0.15s ease;
+  cursor: default;
+}
+
+.db__status-segment:hover {
+  opacity: 0.8;
+}
+
+.db__status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.db__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.db__legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.db__legend-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.db__legend-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+/* ── Component progress ── */
+
+.db__components {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.db__comp-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.db__comp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.db__comp-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.db__comp-stat {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.db__comp-blocked {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.db__progress-track {
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.db__progress-fill {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.db__progress-fill--complete {
+  background: #10b981;
+}
+
+/* ── Priority distribution ── */
+
+.db__priorities {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.db__pri-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.db__pri-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.db__pri-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.db__pri-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  flex: 1;
+}
+
+.db__pri-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.db__pri-track {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.db__pri-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 1100px) {
+  .db__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .db__hero {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .db__hero {
+    grid-template-columns: 1fr;
+  }
+}

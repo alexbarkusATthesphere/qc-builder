@@ -1,1 +1,46 @@
-<p>project-summary-card works!</p>
+<div class="psc" (click)="onClick()">
+  <div class="psc__header">
+    <h3 class="psc__name">{{ project().name }}</h3>
+    <app-status-badge
+      [label]="formatStatus(project().status)"
+      [color]="getProjectStatusColor(project().status)"
+      size="sm"
+    />
+  </div>
+
+  <div class="psc__stats">
+    <span class="psc__completion">{{ completionPercent() }}% complete</span>
+    <span class="psc__detail">{{ completedCount() }} of {{ tasks().length }} tasks</span>
+  </div>
+
+  <!-- Mini progress bar with status segments -->
+  <div class="psc__bar">
+    @for (seg of statusSegments(); track seg.name) {
+      <div
+        class="psc__segment"
+        [style.width.%]="seg.percent"
+        [style.background]="seg.color"
+        [title]="seg.name"
+      ></div>
+    }
+  </div>
+
+  @if (project().owner) {
+    <div class="psc__owner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" class="psc__owner-icon">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+      </svg>
+      {{ project().owner }}
+    </div>
+  }
+
+  <span class="psc__action">
+    View project
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" class="psc__arrow">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  </span>
+</div>
