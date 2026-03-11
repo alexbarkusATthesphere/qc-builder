@@ -1,59 +1,130 @@
-# QcBuilder
+# QC Builder
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.0.
+An internal web application for the dev team to manage and track the status of projects, built with Angular and Tailwind CSS.
 
-## Development server
+## Purpose
 
-To start a local development server, run:
+QC Builder provides a centralized dashboard for the team to monitor project health, track milestones, and maintain visibility across all active initiatives. It replaces scattered spreadsheets and ad-hoc status updates with a single source of truth.
+
+## Tech Stack
+
+- **Framework:** Angular 21 (standalone components)
+- **Styling:** Tailwind CSS
+- **Testing:** Vitest
+- **Language:** TypeScript
+
+## Project Structure
+
+```
+qc-builder/
+├── src/
+│   ├── app/
+│   │   ├── core/            # Singleton services, guards, interceptors
+│   │   ├── shared/          # Reusable components, directives, pipes
+│   │   ├── features/        # Feature modules (lazy-loaded)
+│   │   │   ├── dashboard/   # Main project overview
+│   │   │   ├── projects/    # Project CRUD and detail views
+│   │   │   └── settings/    # App and user settings
+│   │   ├── models/          # TypeScript interfaces and types
+│   │   ├── app.component.ts
+│   │   ├── app.config.ts
+│   │   └── app.routes.ts
+│   ├── assets/
+│   ├── environments/
+│   ├── styles.css
+│   └── main.ts
+├── angular.json
+├── tailwind.config.js
+├── tsconfig.json
+└── package.json
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18+)
+- Angular CLI (`npm install -g @angular/cli`)
+
+### Installation
+
+```bash
+git clone <repo-url>
+cd qc-builder
+npm install
+```
+
+### Development Server
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Navigate to `http://localhost:4200/`. The app reloads automatically on file changes.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+### Build
 
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Production artifacts output to `dist/`.
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### Tests
 
 ```bash
 ng test
 ```
 
-## Running end-to-end tests
+## Roadmap
 
-For end-to-end (e2e) testing, run:
+Development is broken into phases. Each phase builds on the last and is scoped to be deliverable independently.
 
-```bash
-ng e2e
-```
+### Phase 1 — Foundation
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- Project scaffolding and repo setup
+- Tailwind CSS configuration and base theme
+- Core layout (shell, sidebar, navigation)
+- Routing structure with lazy-loaded feature modules
 
-## Additional Resources
+### Phase 2 — Project Management
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Project list view with filtering and sorting
+- Project detail view (description, owner, dates, links)
+- Status tracking (Not Started, In Progress, In Review, Complete, Blocked)
+- Create, edit, and archive projects
+
+### Phase 3 — Dashboard & Visibility
+
+- Dashboard with summary metrics (active, blocked, completed counts)
+- Status breakdown charts
+- Team workload overview
+- Recent activity feed
+
+### Phase 4 — Collaboration & History
+
+- Status change history and audit log
+- Notes and comments per project
+- Tagging and categorization
+- Notifications for status changes
+
+### Phase 5 — Polish & Integrations
+
+- Search across all projects
+- Export to CSV / PDF
+- Dark mode support
+- Integration hooks (API endpoints for CI/CD pipelines, Slack, etc.)
+
+## Contributing
+
+This is an internal tool — all team members are encouraged to contribute. Follow these conventions:
+
+- **Branching:** `feature/<name>`, `bugfix/<name>`, `chore/<name>`
+- **Commits:** Use conventional commits (`feat:`, `fix:`, `chore:`, `docs:`)
+- **Components:** Generate with `ng generate component features/<feature>/<component-name>`
+- **Styles:** Use Tailwind utility classes; avoid custom CSS unless absolutely necessary
+- **Testing:** Write unit tests for services and non-trivial component logic
+
+## License
+
+Property of Sphere Entertainment Co. Internal use only. Not for external distribution.
