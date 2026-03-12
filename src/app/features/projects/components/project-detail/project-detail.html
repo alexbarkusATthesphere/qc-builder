@@ -5,61 +5,44 @@
   </div>
 } @else if (project(); as proj) {
   <div class="pd">
-    <!-- Back nav -->
-    <button class="pd__back" (click)="goBack()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round" class="pd__back-icon">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-      projects
-    </button>
 
-    <!-- ===== Header ===== -->
-    <header class="pd__header">
-      <div class="pd__header-left">
+    <!-- ===== Row 1: Identity ===== -->
+    <div class="pd__identity">
+      <div class="pd__identity-left">
+        <button class="pd__back" (click)="goBack()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" class="pd__back-icon">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+
         <h1 class="pd__name">{{ proj.name }}</h1>
-        @if (proj.description) {
-          <p class="pd__desc">{{ proj.description }}</p>
-        }
-        <div class="pd__meta">
-          <app-status-badge
-            [label]="formatProjectStatus(proj.status)"
-            [color]="getStatusColor(proj.status)"
-          />
-          @if (proj.owner) {
-            <span class="pd__owner">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round" class="pd__meta-icon">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-              </svg>
-              {{ proj.owner }}
-            </span>
-          }
-        </div>
-      </div>
-    </header>
 
-    <!-- ===== Status summary cards ===== -->
-    <div class="pd__stats">
-      @for (s of statusSummary(); track s.id) {
-        <div class="pd__stat-card">
-          <div class="pd__stat-dot" [style.background]="s.color"></div>
-          <div class="pd__stat-info">
-            <span class="pd__stat-count">{{ s.count }}</span>
-            <span class="pd__stat-label">{{ s.name }}</span>
-          </div>
-        </div>
-      }
-      <div class="pd__stat-card pd__stat-card--total">
-        <div class="pd__stat-info">
-          <span class="pd__stat-count">{{ tasks().length }}</span>
-          <span class="pd__stat-label">Total</span>
-        </div>
+        <app-status-badge
+          [label]="formatProjectStatus(proj.status)"
+          [color]="getStatusColor(proj.status)"
+          size="sm"
+        />
+
+        @if (proj.owner) {
+          <span class="pd__owner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="pd__meta-icon">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+            </svg>
+            {{ proj.owner }}
+          </span>
+        }
+
+        @if (proj.description) {
+          <span class="pd__divider"></span>
+          <p class="pd__desc" [title]="proj.description">{{ proj.description }}</p>
+        }
       </div>
     </div>
 
-    <!-- ===== Toolbar: view toggle + filters ===== -->
+    <!-- ===== Row 2: Toolbar ===== -->
     <div class="pd__toolbar">
       <div class="pd__toolbar-left">
         <!-- View toggle -->
@@ -132,6 +115,17 @@
             <option value="LOW">Low</option>
           </select>
 
+          <select
+            class="pd__filter-select"
+            [value]="filterEnvironment() ?? ''"
+            (change)="setFilterEnvironment($any($event.target).value || null)"
+          >
+            <option value="">All Environments</option>
+            <option value="dev">Dev</option>
+            <option value="test">Test</option>
+            <option value="prod">Prod</option>
+          </select>
+
           @if (activeFilterCount() > 0) {
             <button class="pd__filter-clear" (click)="clearFilters()">
               Clear ({{ activeFilterCount() }})
@@ -140,12 +134,25 @@
         </div>
       </div>
 
-      <span class="pd__task-count">
-        {{ filteredTasks().length }} of {{ tasks().length }} tasks
-      </span>
+      <!-- Inline status counts + task total -->
+      <div class="pd__toolbar-right">
+        <div class="pd__status-pills">
+          @for (s of statusSummary(); track s.id) {
+            @if (s.count > 0) {
+              <span class="pd__status-pill">
+                <span class="pd__status-pill-dot" [style.background]="s.color"></span>
+                {{ s.count }}
+              </span>
+            }
+          }
+        </div>
+        <span class="pd__task-count">
+          {{ filteredTasks().length }} of {{ tasks().length }} tasks
+        </span>
+      </div>
     </div>
 
-    <!-- ===== Task views ===== -->
+    <!-- ===== Board / Table — fills remaining viewport ===== -->
     <div class="pd__content">
       @if (viewMode() === 'board') {
         <app-task-board

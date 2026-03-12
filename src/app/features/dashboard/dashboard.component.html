@@ -88,12 +88,13 @@
       </div>
     </div>
 
-    <!-- ===== Two-column: charts + sidebar ===== -->
+    <!-- ===== Three-column grid — fills remaining viewport ===== -->
     <div class="db__grid">
-      <!-- Left column -->
-      <div class="db__charts">
+
+      <!-- ── Column 1: Status + Component Progress ── -->
+      <div class="db__col db__col--primary">
         <!-- Status breakdown -->
-        <section class="db__card">
+        <section class="db__card db__card--compact">
           <h2 class="db__card-title">status breakdown</h2>
           <div class="db__status-bar">
             @for (s of statusBreakdown(); track s.name) {
@@ -118,8 +119,38 @@
           </div>
         </section>
 
+        <!-- Component progress -->
+        <section class="db__card db__card--fill">
+          <h2 class="db__card-title">component progress</h2>
+          <div class="db__components">
+            @for (c of componentProgress(); track c.name) {
+              <div class="db__comp-row">
+                <div class="db__comp-header">
+                  <span class="db__comp-name">{{ c.name }}</span>
+                  <span class="db__comp-stat">
+                    {{ c.done }}/{{ c.total }}
+                    @if (c.blocked > 0) {
+                      <span class="db__comp-blocked">· {{ c.blocked }} blocked</span>
+                    }
+                  </span>
+                </div>
+                <div class="db__progress-track">
+                  <div
+                    class="db__progress-fill"
+                    [style.width.%]="c.percent"
+                    [class.db__progress-fill--complete]="c.percent === 100"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+
+      <!-- ── Column 2: Environment + Priority ── -->
+      <div class="db__col db__col--secondary">
         <!-- Environment breakdown -->
-        <section class="db__card">
+        <section class="db__card db__card--fill">
           <h2 class="db__card-title">environment</h2>
           <div class="db__environments">
             @for (e of environmentBreakdown(); track e.key) {
@@ -151,35 +182,8 @@
           </div>
         </section>
 
-        <!-- Component progress -->
-        <section class="db__card" style="flex: 1; min-height: 0;">
-          <h2 class="db__card-title">component progress</h2>
-          <div class="db__components">
-            @for (c of componentProgress(); track c.name) {
-              <div class="db__comp-row">
-                <div class="db__comp-header">
-                  <span class="db__comp-name">{{ c.name }}</span>
-                  <span class="db__comp-stat">
-                    {{ c.done }}/{{ c.total }}
-                    @if (c.blocked > 0) {
-                      <span class="db__comp-blocked">· {{ c.blocked }} blocked</span>
-                    }
-                  </span>
-                </div>
-                <div class="db__progress-track">
-                  <div
-                    class="db__progress-fill"
-                    [style.width.%]="c.percent"
-                    [class.db__progress-fill--complete]="c.percent === 100"
-                  ></div>
-                </div>
-              </div>
-            }
-          </div>
-        </section>
-
         <!-- Priority distribution -->
-        <section class="db__card">
+        <section class="db__card db__card--compact">
           <h2 class="db__card-title">priority distribution</h2>
           <div class="db__priorities">
             @for (p of priorityBreakdown(); track p.key) {
@@ -202,10 +206,10 @@
         </section>
       </div>
 
-      <!-- Right column -->
-      <div class="db__sidebar">
+      <!-- ── Column 3: Projects + Activity Feed ── -->
+      <div class="db__col db__col--aside">
         <!-- Project cards -->
-        <section class="db__card">
+        <section class="db__card db__card--compact">
           <h2 class="db__card-title">projects</h2>
           @for (pd of projectsData(); track pd.project.id) {
             <app-project-summary-card
@@ -218,11 +222,14 @@
         </section>
 
         <!-- Activity feed -->
-        <section class="db__card">
+        <section class="db__card db__card--fill">
           <h2 class="db__card-title">recent activity</h2>
-          <app-activity-feed [items]="activityItems()" />
+          <div class="db__activity-scroll">
+            <app-activity-feed [items]="activityItems()" />
+          </div>
         </section>
       </div>
+
     </div>
   </div>
 }

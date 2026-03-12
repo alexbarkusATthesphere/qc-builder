@@ -17,7 +17,7 @@
   height: 100%;
   overflow: hidden;
   padding: 24px 28px 20px;
-  gap: 16px;
+  gap: 14px;
   position: relative;
 }
 
@@ -184,25 +184,19 @@
   letter-spacing: 0.03em;
 }
 
-/* ── Two-column grid — fills remaining viewport ── */
+/* ── Three-column grid — fills remaining viewport ── */
 
 .db__grid {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr minmax(240px, 0.65fr) minmax(280px, 0.75fr);
   gap: 14px;
   flex: 1;
   min-height: 0;
 }
 
-.db__charts {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-height: 0;
-  overflow: hidden;
-}
+/* ── Columns ── */
 
-.db__sidebar {
+.db__col {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -220,6 +214,18 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* Compact cards: auto height, no flex growth */
+.db__card--compact {
+  flex: 0 0 auto;
+}
+
+/* Fill cards: take remaining space in column */
+.db__card--fill {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .db__card-title {
@@ -399,46 +405,34 @@
   transition: width 0.4s var(--s-ease);
 }
 
-/* ── Sidebar column — card flex distribution ── */
+/* ── Activity feed scroll container ── */
 
-.db__sidebar .db__card:first-child {
-  flex: 0 1 auto;
-}
-
-.db__sidebar .db__card:last-child {
+.db__activity-scroll {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  /* Thin scrollbar that matches the Sphere aesthetic */
+  scrollbar-width: thin;
+  scrollbar-color: var(--s-border-hover) transparent;
 }
 
-/* ── Responsive ── */
-
-@media (max-width: 1100px) {
-  .db__grid {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
-  }
-
-  .db {
-    height: auto;
-    max-height: none;
-    overflow-y: auto;
-  }
-
-  .db__hero {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.db__activity-scroll::-webkit-scrollbar {
+  width: 4px;
 }
 
-@media (max-width: 640px) {
-  .db {
-    padding: 16px;
-  }
-
-  .db__hero {
-    grid-template-columns: 1fr;
-  }
+.db__activity-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
+
+.db__activity-scroll::-webkit-scrollbar-thumb {
+  background: var(--s-border-hover);
+  border-radius: 2px;
+}
+
+.db__activity-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--s-text-4);
+}
+
 /* ── Environment filter pills ── */
 
 .db__env-filter {
@@ -549,4 +543,50 @@
   font-size: 11px;
   font-weight: 300;
   color: var(--s-text-3);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 1200px) {
+  .db__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .db__col--aside {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .db__grid {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .db__col--aside {
+    grid-template-columns: 1fr;
+  }
+
+  .db {
+    height: auto;
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  .db__hero {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .db {
+    padding: 16px;
+  }
+
+  .db__hero {
+    grid-template-columns: 1fr;
+  }
 }

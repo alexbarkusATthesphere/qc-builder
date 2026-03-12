@@ -183,8 +183,11 @@ export class DashboardComponent implements OnInit {
     const statusMap = new Map(data.statuses.map((s) => [s.id, s]));
     const categoryMap = new Map(data.categories.map((c) => [c.id, c]));
 
+    const activityTimestamp = (t: TaskRead): string =>
+      t.completed_at ?? t.created_at;
+
     return [...data.tasks]
-      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .sort((a, b) => new Date(activityTimestamp(b)).getTime() - new Date(activityTimestamp(a)).getTime())
       .slice(0, 15)
       .map((t) => {
         const status = statusMap.get(t.status_id);
@@ -196,7 +199,7 @@ export class DashboardComponent implements OnInit {
           statusColor: status?.color ?? '#94a3b8',
           categoryName: category?.name ?? '',
           priority: t.priority,
-          timestamp: t.updated_at,
+          timestamp: activityTimestamp(t),
         };
       });
   });

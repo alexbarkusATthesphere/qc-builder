@@ -6,7 +6,7 @@ import { switchMap } from 'rxjs/operators';
 import { StatusBadgeComponent } from '../../../../shared/components/status-badge/status-badge';
 import { ProjectService, ProjectDetailRead } from '../../../../services/project';
 import { TemplateService, TemplateDetailRead, StatusDefinitionRead, TaskCategoryRead } from '../../../../services/template';
-import { TaskService, TaskRead, TaskDetailRead } from '../../../../services/task';
+import { TaskService, TaskRead, TaskDetailRead, TaskEnvironment } from '../../../../services/task';
 import { TaskBoardComponent } from '../../../tasks/components/task-board/task-board';
 import { TaskListComponent } from '../../../tasks/components/task-list/task-list';
 import { TaskDetailPanelComponent } from '../../../tasks/components/task-detail/task-detail';
@@ -46,6 +46,7 @@ export class ProjectDetailComponent implements OnInit {
   filterComponent = signal<number | null>(null);
   filterCategory = signal<number | null>(null);
   filterPriority = signal<string | null>(null);
+  filterEnvironment = signal<TaskEnvironment | null>(null);
 
   // Derived
   statuses = computed(() => this.template()?.statuses ?? []);
@@ -57,10 +58,12 @@ export class ProjectDetailComponent implements OnInit {
     const comp = this.filterComponent();
     const cat = this.filterCategory();
     const pri = this.filterPriority();
+    const env = this.filterEnvironment();
 
     if (comp != null) result = result.filter((t) => t.component_id === comp);
     if (cat != null) result = result.filter((t) => t.category_id === cat);
     if (pri) result = result.filter((t) => t.priority === pri);
+    if (env) result = result.filter((t) => t.environment === env);
 
     return result;
   });
@@ -79,6 +82,7 @@ export class ProjectDetailComponent implements OnInit {
     if (this.filterComponent() != null) count++;
     if (this.filterCategory() != null) count++;
     if (this.filterPriority()) count++;
+    if (this.filterEnvironment()) count++;
     return count;
   });
 
@@ -145,10 +149,15 @@ export class ProjectDetailComponent implements OnInit {
     this.filterPriority.set(p);
   }
 
+  setFilterEnvironment(env: TaskEnvironment | null): void {
+    this.filterEnvironment.set(env);
+  }
+
   clearFilters(): void {
     this.filterComponent.set(null);
     this.filterCategory.set(null);
     this.filterPriority.set(null);
+    this.filterEnvironment.set(null);
   }
 
   getStatusColor(status: string): string {

@@ -1,23 +1,32 @@
 /* =========================================================================
    Project Detail — Sphere Brand
    Consumes tokens from sphere.css
+   Viewport-fitted layout: compact header, board fills remaining space
    ========================================================================= */
+
+:host {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+}
 
 .pd {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  max-width: 100%;
-  padding: 24px 28px 20px;
+  height: 100%;
+  overflow: hidden;
+  padding: 16px 20px 14px;
+  gap: 12px;
 }
 
-/* Loading */
+/* ── Loading ── */
+
 .pd__loading {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 64px 0;
+  height: 100%;
   color: var(--s-text-3);
   font-size: 13px;
   font-weight: 300;
@@ -37,21 +46,35 @@
   to { transform: rotate(360deg); }
 }
 
-/* Back button */
-.pd__back {
-  display: inline-flex;
+/* ── Row 1: Identity — single compact line ── */
+
+.pd__identity {
+  display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  flex-shrink: 0;
+  min-height: 0;
+}
+
+.pd__identity-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pd__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 0;
   border: none;
   background: none;
-  font-family: var(--s-font);
-  font-size: 12px;
-  font-weight: 400;
   color: var(--s-text-3);
   cursor: pointer;
   transition: color var(--s-duration) var(--s-ease);
-  letter-spacing: 0.02em;
+  flex-shrink: 0;
 }
 
 .pd__back:hover {
@@ -59,127 +82,75 @@
 }
 
 .pd__back-icon {
-  width: 14px;
-  height: 14px;
-}
-
-/* Header */
-.pd__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
+  width: 18px;
+  height: 18px;
 }
 
 .pd__name {
-  font-size: 22px;
-  font-weight: 200;
+  font-size: 18px;
+  font-weight: 300;
   color: var(--s-text);
   letter-spacing: 0.01em;
-  line-height: 1.2;
-}
-
-.pd__desc {
-  font-size: 13px;
-  font-weight: 300;
-  color: var(--s-text-3);
-  line-height: 1.6;
-  margin-top: 6px;
-  max-width: 720px;
-}
-
-.pd__meta {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .pd__owner {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-size: 12px;
   font-weight: 300;
   color: var(--s-text-3);
-}
-
-.pd__meta-icon {
-  width: 14px;
-  height: 14px;
-  color: var(--s-text-4);
-}
-
-/* Stats */
-.pd__stats {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.pd__stat-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
-  background: var(--s-surface-2);
-  border: 1px solid var(--s-border);
-  border-radius: var(--s-radius-md);
-  min-width: 110px;
-  transition: border-color var(--s-duration) var(--s-ease);
-}
-
-.pd__stat-card:hover {
-  border-color: var(--s-border-hover);
-}
-
-.pd__stat-card--total {
-  background: var(--s-surface-3);
-  border-style: dashed;
-}
-
-.pd__stat-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
-.pd__stat-info {
-  display: flex;
-  flex-direction: column;
+.pd__meta-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--s-text-4);
 }
 
-.pd__stat-count {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--s-text);
-  line-height: 1;
-  letter-spacing: -0.02em;
+.pd__divider {
+  width: 1px;
+  height: 16px;
+  background: var(--s-border);
+  flex-shrink: 0;
 }
 
-.pd__stat-label {
-  font-size: 11px;
+.pd__desc {
+  font-size: 12px;
   font-weight: 300;
-  color: var(--s-text-3);
-  margin-top: 2px;
-  letter-spacing: 0.02em;
+  color: var(--s-text-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.4;
 }
 
-/* Toolbar */
+/* ── Row 2: Toolbar ── */
+
 .pd__toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .pd__toolbar-left {
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+
+.pd__toolbar-right {
+  display: flex;
+  align-items: center;
   gap: 14px;
-  flex-wrap: wrap;
 }
 
 /* View toggle */
@@ -187,20 +158,20 @@
   display: flex;
   background: var(--s-surface-3);
   border-radius: var(--s-radius-sm);
-  padding: 3px;
+  padding: 2px;
   border: 1px solid var(--s-border);
 }
 
 .pd__view-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 5px;
+  padding: 5px 12px;
   border: none;
   border-radius: 4px;
   background: transparent;
   font-family: var(--s-font);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
   color: var(--s-text-3);
   cursor: pointer;
@@ -219,28 +190,27 @@
 }
 
 .pd__view-icon {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
 }
 
 /* Filters */
 .pd__filters {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
-  flex-wrap: wrap;
 }
 
 .pd__filter-select {
-  padding: 6px 28px 6px 10px;
+  padding: 5px 26px 5px 9px;
   border: 1px solid var(--s-border);
   border-radius: var(--s-radius-sm);
   background-color: var(--s-surface-2);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.38)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.38)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 8px center;
+  background-position: right 7px center;
   font-family: var(--s-font);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
   color: var(--s-text-2);
   cursor: pointer;
@@ -260,13 +230,13 @@
 }
 
 .pd__filter-clear {
-  padding: 6px 12px;
+  padding: 5px 10px;
   border: 1px solid rgba(248, 113, 113, 0.2);
   border-radius: var(--s-radius-sm);
   background: rgba(248, 113, 113, 0.08);
   color: var(--s-blocked);
   font-family: var(--s-font);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: background var(--s-duration) var(--s-ease);
@@ -277,15 +247,68 @@
   background: rgba(248, 113, 113, 0.14);
 }
 
+/* Inline status pills (replace the old stat cards) */
+.pd__status-pills {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pd__status-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--s-text-2);
+  letter-spacing: -0.01em;
+}
+
+.pd__status-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .pd__task-count {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 300;
   color: var(--s-text-4);
   white-space: nowrap;
   letter-spacing: 0.02em;
 }
 
-/* Content */
+/* ── Content area — fills remaining viewport ── */
+
 .pd__content {
-  min-height: 300px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 1100px) {
+  .pd__desc {
+    display: none;
+  }
+
+  .pd__divider {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .pd__toolbar {
+    flex-wrap: wrap;
+  }
+
+  .pd__filters {
+    flex-wrap: wrap;
+  }
+
+  .pd__content {
+    overflow: auto;
+  }
 }
