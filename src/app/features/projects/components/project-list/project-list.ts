@@ -35,12 +35,12 @@ export class ProjectListComponent implements OnInit {
 
   getStatusColor(status: string): string {
     const colors: Record<string, string> = {
-      active: '#3B82F6',
-      on_hold: '#F59E0B',
-      complete: '#10B981',
-      archived: '#6B7280',
+      active: '#05C3DD',   // Sphere Blue
+      on_hold: '#fbbf24',
+      complete: '#34d399',
+      archived: '#64748b',
     };
-    return colors[status] ?? '#6B7280';
+    return colors[status.toLowerCase()] ?? '#64748b';
   }
 
   formatStatus(status: string): string {

@@ -1,0 +1,152 @@
+/* =========================================================================
+   Sphere Brand Theme
+   Single source of truth — imported in global styles.css
+   
+   Brand ref: Sphere Brand Guidelines V2 (Dec 2023)
+   - Primary: Black + White
+   - Accent:  Sphere Blue #05C3DD
+   - Font:    Graphie (fallback: Nunito Sans — closest geometric thin-weight
+              match available via Google Fonts; swap when Graphie is self-hosted)
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,200;6..12,300;6..12,400;6..12,600;6..12,700;6..12,800&display=swap');
+
+/* ── Brand palette ── */
+:root {
+  /* Core */
+  --s-black:              #000000;
+  --s-white:              #FFFFFF;
+  --s-blue:               #05C3DD;
+  --s-blue-dark:          #005670;
+  --s-gold:               #C9A045;
+  --s-silver:             #A7A8A9;
+
+  /* Surfaces (layered on black) */
+  --s-surface-0:          #000000;
+  --s-surface-1:          #0b0b0f;
+  --s-surface-2:          #111116;
+  --s-surface-3:          #1a1a21;
+  --s-surface-4:          #22222b;
+
+  /* Borders */
+  --s-border:             rgba(255, 255, 255, 0.06);
+  --s-border-subtle:      rgba(255, 255, 255, 0.03);
+  --s-border-hover:       rgba(5, 195, 221, 0.20);
+  --s-border-active:      rgba(5, 195, 221, 0.35);
+
+  /* Text */
+  --s-text:               #FFFFFF;
+  --s-text-2:             rgba(255, 255, 255, 0.60);
+  --s-text-3:             rgba(255, 255, 255, 0.38);
+  --s-text-4:             rgba(255, 255, 255, 0.20);
+
+  /* Semantic — status */
+  --s-complete:           #34d399;
+  --s-progress:           #fbbf24;
+  --s-blocked:            #f87171;
+  --s-review:             #a78bfa;
+  --s-not-started:        #64748b;
+
+  /* Semantic — priority */
+  --s-critical:           #f87171;
+  --s-high:               #fb923c;
+  --s-medium:             #fbbf24;
+  --s-low:                #64748b;
+
+  /* Accent tints (for icon backgrounds, glows) */
+  --s-blue-tint:          rgba(5, 195, 221, 0.10);
+  --s-complete-tint:      rgba(52, 211, 153, 0.10);
+  --s-progress-tint:      rgba(251, 191, 36, 0.10);
+  --s-blocked-tint:       rgba(248, 113, 113, 0.10);
+
+  /* Typography */
+  --s-font:               'Nunito Sans', 'Graphie', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Radii */
+  --s-radius-sm:          6px;
+  --s-radius-md:          10px;
+  --s-radius-lg:          14px;
+
+  /* Transitions */
+  --s-ease:               cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --s-duration:           0.2s;
+
+  /* Sidebar dimensions */
+  --s-sidebar-w:          220px;
+  --s-sidebar-w-collapsed: 60px;
+}
+
+/* ── Global resets scoped to Sphere theme ── */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--s-black);
+  color: var(--s-text);
+  font-family: var(--s-font);
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* ── Shared scrollbar styling ── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ── Utility: aura glow (reusable background decoration) ── */
+.s-aura {
+  position: relative;
+}
+.s-aura::before {
+  content: '';
+  position: absolute;
+  top: -35%;
+  right: -15%;
+  width: 55%;
+  height: 70%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(5, 195, 221, 0.06) 0%,
+    rgba(0, 86, 112, 0.025) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.s-aura::after {
+  content: '';
+  position: absolute;
+  bottom: -25%;
+  left: -10%;
+  width: 45%;
+  height: 55%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(5, 195, 221, 0.035) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.s-aura > * {
+  position: relative;
+  z-index: 1;
+}

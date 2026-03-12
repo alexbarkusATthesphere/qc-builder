@@ -18,8 +18,8 @@ export class ShellComponent {
   collapsed = signal(false);
 
   navItems: NavItem[] = [
-    { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
-    { label: 'Projects', route: '/projects', icon: 'folder' },
+    { label: 'dashboard', route: '/dashboard', icon: 'dashboard' },
+    { label: 'projects', route: '/projects', icon: 'folder' },
   ];
 
   toggleSidebar(): void {

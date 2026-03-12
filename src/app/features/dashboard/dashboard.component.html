@@ -1,15 +1,15 @@
 @if (loading()) {
   <div class="db__loading">
     <div class="db__spinner"></div>
-    <span>Loading dashboard…</span>
+    <span>loading dashboard</span>
   </div>
 } @else {
   <div class="db">
     <!-- ===== Header ===== -->
     <div class="db__header">
       <div>
-        <h1 class="db__title">Dashboard</h1>
-        <p class="db__subtitle">Project health at a glance</p>
+        <h1 class="db__title">dashboard</h1>
+        <p class="db__subtitle">project health at a glance</p>
       </div>
     </div>
 
@@ -25,7 +25,7 @@
         </div>
         <div class="db__metric-data">
           <span class="db__metric-value">{{ totalTasks() }}</span>
-          <span class="db__metric-label">Total Tasks</span>
+          <span class="db__metric-label">total tasks</span>
         </div>
       </div>
 
@@ -38,7 +38,7 @@
         </div>
         <div class="db__metric-data">
           <span class="db__metric-value">{{ completionPercent() }}<small>%</small></span>
-          <span class="db__metric-label">Complete ({{ completedTasks() }})</span>
+          <span class="db__metric-label">complete ({{ completedTasks() }})</span>
         </div>
       </div>
 
@@ -56,7 +56,7 @@
         </div>
         <div class="db__metric-data">
           <span class="db__metric-value">{{ inProgressTasks() }}</span>
-          <span class="db__metric-label">In Progress</span>
+          <span class="db__metric-label">in progress</span>
         </div>
       </div>
 
@@ -70,18 +70,18 @@
         </div>
         <div class="db__metric-data">
           <span class="db__metric-value">{{ blockedTasks() }}</span>
-          <span class="db__metric-label">Blocked</span>
+          <span class="db__metric-label">blocked</span>
         </div>
       </div>
     </div>
 
-    <!-- ===== Two-column: charts + activity ===== -->
+    <!-- ===== Two-column: charts + sidebar ===== -->
     <div class="db__grid">
       <!-- Left column -->
       <div class="db__charts">
-        <!-- Status breakdown bar -->
+        <!-- Status breakdown -->
         <section class="db__card">
-          <h2 class="db__card-title">Status Breakdown</h2>
+          <h2 class="db__card-title">status breakdown</h2>
           <div class="db__status-bar">
             @for (s of statusBreakdown(); track s.name) {
               @if (s.count > 0) {
@@ -106,8 +106,8 @@
         </section>
 
         <!-- Component progress -->
-        <section class="db__card">
-          <h2 class="db__card-title">Component Progress</h2>
+        <section class="db__card" style="flex: 1; min-height: 0;">
+          <h2 class="db__card-title">component progress</h2>
           <div class="db__components">
             @for (c of componentProgress(); track c.name) {
               <div class="db__comp-row">
@@ -134,7 +134,7 @@
 
         <!-- Priority distribution -->
         <section class="db__card">
-          <h2 class="db__card-title">Priority Distribution</h2>
+          <h2 class="db__card-title">priority distribution</h2>
           <div class="db__priorities">
             @for (p of priorityBreakdown(); track p.key) {
               <div class="db__pri-row">
@@ -160,7 +160,7 @@
       <div class="db__sidebar">
         <!-- Project cards -->
         <section class="db__card">
-          <h2 class="db__card-title">Projects</h2>
+          <h2 class="db__card-title">projects</h2>
           @for (pd of projectsData(); track pd.project.id) {
             <app-project-summary-card
               [project]="pd.project"
@@ -173,7 +173,7 @@
 
         <!-- Activity feed -->
         <section class="db__card">
-          <h2 class="db__card-title">Recent Activity</h2>
+          <h2 class="db__card-title">recent activity</h2>
           <app-activity-feed [items]="activityItems()" />
         </section>
       </div>

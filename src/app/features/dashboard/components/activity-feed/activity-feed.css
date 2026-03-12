@@ -1,18 +1,20 @@
 /* =========================================================================
-   Activity Feed
+   Activity Feed — Sphere Brand
+   Consumes tokens from sphere.css
    ========================================================================= */
 
 .af {
   display: flex;
   flex-direction: column;
-  max-height: 500px;
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Item */
 .af__item {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   min-height: 0;
 }
 
@@ -25,39 +27,40 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 4px;
+  padding-top: 3px;
   flex-shrink: 0;
-  width: 16px;
+  width: 14px;
 }
 
 .af__dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(5, 195, 221, 0.12);
 }
 
 .af__line {
-  width: 1.5px;
+  width: 1px;
   flex: 1;
-  background: #e2e8f0;
+  background: var(--s-border);
   margin-top: 4px;
 }
 
 /* Content */
 .af__content {
   flex: 1;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 
 .af__title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1e293b;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--s-text-2);
   line-height: 1.4;
   display: -webkit-box;
   line-clamp: 2;
@@ -69,51 +72,38 @@
 .af__meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .af__priority {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
-.af__priority--critical { color: #dc2626; }
-.af__priority--high     { color: #f97316; }
-.af__priority--medium   { color: #d97706; }
-.af__priority--low      { color: #6b7280; }
+.af__priority--critical { color: var(--s-critical); }
+.af__priority--high     { color: var(--s-high); }
+.af__priority--medium   { color: var(--s-medium); }
+.af__priority--low      { color: var(--s-low); }
 
 .af__category {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: 10px;
+  color: var(--s-text-4);
 }
 
 .af__time {
-  font-size: 11px;
-  color: #cbd5e1;
+  font-size: 10px;
+  color: var(--s-text-4);
 }
 
 /* Empty */
 .af__empty {
-  padding: 24px 0;
+  padding: 20px 0;
   text-align: center;
-  font-size: 13px;
-  color: #cbd5e1;
+  font-size: 12px;
+  color: var(--s-text-4);
   font-style: italic;
-}
-
-/* Scrollbar */
-.af::-webkit-scrollbar {
-  width: 4px;
-}
-
-.af::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.af::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 2px;
+  letter-spacing: 0.02em;
 }

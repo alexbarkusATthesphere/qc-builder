@@ -2,8 +2,8 @@
   <!-- Header -->
   <div class="pl__header">
     <div>
-      <h1 class="pl__title">Projects</h1>
-      <p class="pl__subtitle">All active initiatives across the team</p>
+      <h1 class="pl__title">projects</h1>
+      <p class="pl__subtitle">all active initiatives across the team</p>
     </div>
   </div>
 
@@ -11,7 +11,7 @@
   @if (loading()) {
     <div class="pl__loading">
       <div class="pl__spinner"></div>
-      <span>Loading projects…</span>
+      <span>loading projects</span>
     </div>
   }
 
@@ -57,7 +57,7 @@
 
           <div class="pl__card-footer">
             <span class="pl__card-action">
-              View project
+              view project
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                    stroke-linecap="round" stroke-linejoin="round" class="pl__arrow">
                 <polyline points="9 18 15 12 9 6"/>
@@ -67,7 +67,7 @@
         </article>
       } @empty {
         <div class="pl__empty">
-          <p>No projects yet. Create one to get started.</p>
+          <p>no projects yet – create one to get started</p>
         </div>
       }
     </div>

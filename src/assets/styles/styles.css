@@ -1,0 +1,8 @@
+/* =========================================================================
+   Global Styles — QC Builder
+   ========================================================================= */
+
+/* Theme (single import — all tokens, resets, and utilities) */
+@import './assets/styles/themes/sphere.css';
+
+/* Additional global styles below if needed */

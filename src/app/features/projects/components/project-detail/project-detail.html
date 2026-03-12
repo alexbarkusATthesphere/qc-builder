@@ -1,7 +1,7 @@
 @if (loading()) {
   <div class="pd__loading">
     <div class="pd__spinner"></div>
-    <span>Loading project…</span>
+    <span>loading project</span>
   </div>
 } @else if (project(); as proj) {
   <div class="pd">
@@ -11,7 +11,7 @@
            stroke-linecap="round" stroke-linejoin="round" class="pd__back-icon">
         <polyline points="15 18 9 12 15 6"/>
       </svg>
-      Projects
+      projects
     </button>
 
     <!-- ===== Header ===== -->
@@ -43,10 +43,7 @@
     <!-- ===== Status summary cards ===== -->
     <div class="pd__stats">
       @for (s of statusSummary(); track s.id) {
-        <div
-          class="pd__stat-card"
-          [class.pd__stat-card--active]="filterComponent() === null && filterCategory() === null && filterPriority() === null"
-        >
+        <div class="pd__stat-card">
           <div class="pd__stat-dot" [style.background]="s.color"></div>
           <div class="pd__stat-info">
             <span class="pd__stat-count">{{ s.count }}</span>
@@ -79,7 +76,7 @@
               <rect x="3" y="14" width="7" height="7" rx="1"/>
               <rect x="14" y="14" width="7" height="7" rx="1"/>
             </svg>
-            Board
+            board
           </button>
           <button
             class="pd__view-btn"
@@ -95,7 +92,7 @@
               <line x1="3" y1="12" x2="3.01" y2="12"/>
               <line x1="3" y1="18" x2="3.01" y2="18"/>
             </svg>
-            Table
+            table
           </button>
         </div>
 
