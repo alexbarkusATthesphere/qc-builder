@@ -439,3 +439,114 @@
     grid-template-columns: 1fr;
   }
 }
+/* ── Environment filter pills ── */
+
+.db__env-filter {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--s-surface-3);
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-radius-md);
+}
+
+.db__env-pill {
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--s-text-3);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--s-radius-sm);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all var(--s-duration) var(--s-ease);
+}
+
+.db__env-pill:hover {
+  color: var(--s-text-2);
+  background: var(--s-surface-4);
+}
+
+.db__env-pill--active {
+  color: var(--s-text);
+  background: var(--s-surface-2);
+  border-color: var(--s-border);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* ── Environment breakdown card ── */
+
+.db__environments {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.db__env-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-radius-sm);
+  cursor: pointer;
+  transition: all var(--s-duration) var(--s-ease);
+  background: transparent;
+}
+
+.db__env-row:hover {
+  border-color: var(--s-border-hover);
+  background: var(--s-surface-3);
+}
+
+.db__env-row--active {
+  border-color: var(--s-border-active);
+  background: var(--s-surface-3);
+  box-shadow: 0 0 16px rgba(5, 195, 221, 0.04);
+}
+
+.db__env-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.db__env-name-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.db__env-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.db__env-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--s-text-2);
+}
+
+.db__env-stats {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.db__env-completion {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--s-text);
+  letter-spacing: -0.02em;
+}
+
+.db__env-detail {
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--s-text-3);
+}

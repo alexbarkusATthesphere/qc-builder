@@ -2,9 +2,9 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
-import { ProjectService, ProjectRead, ProjectDetailRead } from '../../services/project';
+import { ProjectService, ProjectDetailRead } from '../../services/project';
 import { TemplateService, StatusDefinitionRead, TaskCategoryRead } from '../../services/template';
-import { TaskService, TaskRead } from '../../services/task';
+import { TaskService, TaskRead, TaskEnvironment } from '../../services/task';
 import { ProjectSummaryCardComponent } from './components/project-summary-card/project-summary-card';
 import { ActivityFeedComponent, ActivityItem } from './components/activity-feed/activity-feed';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge';
@@ -15,6 +15,8 @@ interface ProjectDashboardData {
   categories: TaskCategoryRead[];
   tasks: TaskRead[];
 }
+
+type EnvFilter = TaskEnvironment | 'all';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,28 +33,46 @@ export class DashboardComponent implements OnInit {
 
   loading = signal(true);
   projectsData = signal<ProjectDashboardData[]>([]);
+  activeEnvFilter = signal<EnvFilter>('all');
 
-  // ── Hero metrics (across all projects) ──
+  /** Filter pills shown in the header */
+  readonly envFilters: { key: EnvFilter; label: string }[] = [
+    { key: 'all',  label: 'All' },
+    { key: 'dev',  label: 'Dev' },
+    { key: 'test', label: 'Test' },
+    { key: 'prod', label: 'Prod' },
+  ];
+
+  /** Tasks scoped by the active environment filter */
+  private filteredTasks = computed(() => {
+    const env = this.activeEnvFilter();
+    return this.projectsData().map((p) => ({
+      ...p,
+      tasks: env === 'all' ? p.tasks : p.tasks.filter((t) => t.environment === env),
+    }));
+  });
+
+  // ── Hero metrics ──
   totalTasks = computed(() =>
-    this.projectsData().reduce((sum, p) => sum + p.tasks.length, 0),
+    this.filteredTasks().reduce((sum, p) => sum + p.tasks.length, 0),
   );
 
   completedTasks = computed(() =>
-    this.projectsData().reduce((sum, p) => {
+    this.filteredTasks().reduce((sum, p) => {
       const terminalIds = new Set(p.statuses.filter((s) => s.is_terminal).map((s) => s.id));
       return sum + p.tasks.filter((t) => terminalIds.has(t.status_id)).length;
     }, 0),
   );
 
   blockedTasks = computed(() =>
-    this.projectsData().reduce((sum, p) => {
+    this.filteredTasks().reduce((sum, p) => {
       const blockedId = p.statuses.find((s) => s.name === 'Blocked')?.id;
       return sum + (blockedId ? p.tasks.filter((t) => t.status_id === blockedId).length : 0);
     }, 0),
   );
 
   inProgressTasks = computed(() =>
-    this.projectsData().reduce((sum, p) => {
+    this.filteredTasks().reduce((sum, p) => {
       const ipId = p.statuses.find((s) => s.name === 'In Progress')?.id;
       return sum + (ipId ? p.tasks.filter((t) => t.status_id === ipId).length : 0);
     }, 0),
@@ -64,9 +84,9 @@ export class DashboardComponent implements OnInit {
     return Math.round((this.completedTasks() / total) * 100);
   });
 
-  // ── Status breakdown (first project for now) ──
+  // ── Status breakdown ──
   statusBreakdown = computed(() => {
-    const data = this.projectsData()[0];
+    const data = this.filteredTasks()[0];
     if (!data) return [];
     const total = data.tasks.length || 1;
     return data.statuses.map((s) => {
@@ -82,13 +102,12 @@ export class DashboardComponent implements OnInit {
 
   // ── Component progress ──
   componentProgress = computed(() => {
-    const data = this.projectsData()[0];
+    const data = this.filteredTasks()[0];
     if (!data) return [];
     const terminalIds = new Set(data.statuses.filter((s) => s.is_terminal).map((s) => s.id));
     const blockedId = data.statuses.find((s) => s.name === 'Blocked')?.id;
     const components = data.project.components;
 
-    // Include tasks without a component as "General"
     const allComponents = [
       ...components.map((c) => ({ id: c.id as number | null, name: c.name })),
       { id: null as number | null, name: 'General' },
@@ -114,24 +133,52 @@ export class DashboardComponent implements OnInit {
 
   // ── Priority breakdown ──
   priorityBreakdown = computed(() => {
-    const data = this.projectsData()[0];
+    const data = this.filteredTasks()[0];
     if (!data) return [];
     const priorities: { key: string; label: string; color: string }[] = [
-      { key: 'CRITICAL', label: 'Critical', color: '#dc2626' },
-      { key: 'HIGH', label: 'High', color: '#f97316' },
-      { key: 'MEDIUM', label: 'Medium', color: '#d97706' },
-      { key: 'LOW', label: 'Low', color: '#6b7280' },
+      { key: 'critical', label: 'Critical', color: '#dc2626' },
+      { key: 'high',     label: 'High',     color: '#f97316' },
+      { key: 'medium',   label: 'Medium',   color: '#d97706' },
+      { key: 'low',      label: 'Low',      color: '#6b7280' },
     ];
     const total = data.tasks.length || 1;
-    return priorities.map((p) => {
-      const count = data.tasks.filter((t) => t.priority === p.key).length;
-      return { ...p, count, percent: Math.round((count / total) * 100) };
-    }).filter((p) => p.count > 0);
+    return priorities
+      .map((p) => {
+        const count = data.tasks.filter((t) => t.priority === p.key).length;
+        return { ...p, count, percent: Math.round((count / total) * 100) };
+      })
+      .filter((p) => p.count > 0);
+  });
+
+  // ── Environment breakdown (always shows unfiltered data) ──
+  environmentBreakdown = computed(() => {
+    const data = this.projectsData()[0];
+    if (!data) return [];
+    const envConfig: { key: TaskEnvironment; label: string; color: string }[] = [
+      { key: 'dev',  label: 'Development', color: '#3B82F6' },
+      { key: 'test', label: 'Test',        color: '#F59E0B' },
+      { key: 'prod', label: 'Production',  color: '#10B981' },
+    ];
+    const total = data.tasks.length || 1;
+    return envConfig
+      .map((e) => {
+        const tasks = data.tasks.filter((t) => t.environment === e.key);
+        const terminalIds = new Set(data.statuses.filter((s) => s.is_terminal).map((s) => s.id));
+        const done = tasks.filter((t) => terminalIds.has(t.status_id)).length;
+        return {
+          ...e,
+          count: tasks.length,
+          done,
+          percent: Math.round((tasks.length / total) * 100),
+          completionPercent: tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0,
+        };
+      })
+      .filter((e) => e.count > 0);
   });
 
   // ── Activity feed ──
   activityItems = computed<ActivityItem[]>(() => {
-    const data = this.projectsData()[0];
+    const data = this.filteredTasks()[0];
     if (!data) return [];
     const statusMap = new Map(data.statuses.map((s) => [s.id, s]));
     const categoryMap = new Map(data.categories.map((c) => [c.id, c]));
@@ -187,6 +234,10 @@ export class DashboardComponent implements OnInit {
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  setEnvFilter(env: EnvFilter): void {
+    this.activeEnvFilter.set(env);
   }
 
   navigateToProject(projectId: number): void {

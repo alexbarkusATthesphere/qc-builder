@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
+export type TaskEnvironment = 'dev' | 'test' | 'prod';
 
 export interface TaskRead {
   id: number;
@@ -15,6 +16,7 @@ export interface TaskRead {
   description: string | null;
   assignee: string | null;
   priority: TaskPriority;
+  environment: TaskEnvironment | null;
   start_date: string | null;
   due_date: string | null;
   completed_at: string | null;
@@ -37,6 +39,7 @@ export interface TaskCreate {
   description?: string | null;
   assignee?: string | null;
   priority?: TaskPriority;
+  environment?: TaskEnvironment | null;
   start_date?: string | null;
   due_date?: string | null;
 }
@@ -50,6 +53,7 @@ export interface TaskUpdate {
   description?: string | null;
   assignee?: string | null;
   priority?: TaskPriority;
+  environment?: TaskEnvironment | null;
   start_date?: string | null;
   due_date?: string | null;
   completed_at?: string | null;
@@ -60,7 +64,8 @@ export interface TaskSummary {
   by_status: Record<string, number>;
   by_priority: Record<string, number>;
   by_category: Record<string, number>;
-  by_assignee: Record<string, number>;
+  by_component: Record<string, number>;
+  by_environment: Record<string, number>;
 }
 
 // ---------------------------------------------------------------------------
@@ -75,6 +80,7 @@ export interface TaskListParams {
   component_id?: number;
   assignee?: string;
   priority?: TaskPriority;
+  environment?: TaskEnvironment;
 }
 
 // ---------------------------------------------------------------------------

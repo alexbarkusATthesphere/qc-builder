@@ -2,13 +2,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { environment } from '../../../environments/environment';
+import { environment as env } from '../../../environments/environment';
 import {
   TaskCommentCreate,
   TaskCommentRead,
   TaskCommentUpdate,
   TaskCreate,
   TaskDetailRead,
+  TaskEnvironment,
   TaskHistoryRead,
   TaskListParams,
   TaskRead,
@@ -19,7 +20,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class TaskService {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.api.v1Url}/tasks`;
+  private readonly base = `${env.api.v1Url}/tasks`;
 
   // -----------------------------------------------------------------------
   // Tasks
@@ -45,6 +46,9 @@ export class TaskService {
     if (filters.priority) {
       params = params.set('priority', filters.priority);
     }
+    if (filters.environment) {
+      params = params.set('environment', filters.environment);
+    }
     return this.http.get<TaskRead[]>(this.base, { params });
   }
 
@@ -52,8 +56,14 @@ export class TaskService {
     return this.http.get<TaskDetailRead>(`${this.base}/${taskId}`);
   }
 
-  getTaskSummary(projectId: number): Observable<TaskSummary> {
-    const params = new HttpParams().set('project_id', projectId);
+  getTaskSummary(
+    projectId: number,
+    environment?: TaskEnvironment,
+  ): Observable<TaskSummary> {
+    let params = new HttpParams().set('project_id', projectId);
+    if (environment) {
+      params = params.set('environment', environment);
+    }
     return this.http.get<TaskSummary>(`${this.base}/summary`, { params });
   }
 

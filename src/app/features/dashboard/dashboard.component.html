@@ -11,6 +11,19 @@
         <h1 class="db__title">dashboard</h1>
         <p class="db__subtitle">project health at a glance</p>
       </div>
+
+      <!-- Environment filter pills -->
+      <div class="db__env-filter">
+        @for (f of envFilters; track f.key) {
+          <button
+            class="db__env-pill"
+            [class.db__env-pill--active]="activeEnvFilter() === f.key"
+            (click)="setEnvFilter(f.key)"
+          >
+            {{ f.label }}
+          </button>
+        }
+      </div>
     </div>
 
     <!-- ===== Hero metric cards ===== -->
@@ -100,6 +113,39 @@
                 <span class="db__legend-dot" [style.background]="s.color"></span>
                 <span class="db__legend-label">{{ s.name }}</span>
                 <span class="db__legend-count">{{ s.count }}</span>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Environment breakdown -->
+        <section class="db__card">
+          <h2 class="db__card-title">environment</h2>
+          <div class="db__environments">
+            @for (e of environmentBreakdown(); track e.key) {
+              <div
+                class="db__env-row"
+                [class.db__env-row--active]="activeEnvFilter() === e.key"
+                (click)="setEnvFilter(e.key)"
+              >
+                <div class="db__env-header">
+                  <div class="db__env-name-group">
+                    <span class="db__env-indicator" [style.background]="e.color"></span>
+                    <span class="db__env-name">{{ e.label }}</span>
+                  </div>
+                  <div class="db__env-stats">
+                    <span class="db__env-completion">{{ e.completionPercent }}%</span>
+                    <span class="db__env-detail">{{ e.done }}/{{ e.count }} tasks</span>
+                  </div>
+                </div>
+                <div class="db__progress-track">
+                  <div
+                    class="db__progress-fill"
+                    [style.width.%]="e.completionPercent"
+                    [style.background]="e.color"
+                    [class.db__progress-fill--complete]="e.completionPercent === 100"
+                  ></div>
+                </div>
               </div>
             }
           </div>
