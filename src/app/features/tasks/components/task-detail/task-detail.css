@@ -56,6 +56,46 @@
   letter-spacing: 0.01em;
 }
 
+.tdp__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Edit button ── */
+
+.tdp__edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-radius-sm);
+  background: transparent;
+  color: var(--s-text-3);
+  font-family: var(--s-font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background var(--s-duration) var(--s-ease),
+              color var(--s-duration) var(--s-ease),
+              border-color var(--s-duration) var(--s-ease);
+}
+
+.tdp__edit-btn:hover {
+  background: var(--s-surface-3);
+  color: var(--s-blue);
+  border-color: var(--s-border-hover);
+}
+
+.tdp__edit-icon {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Close ── */
+
 .tdp__close {
   width: 30px;
   height: 30px;

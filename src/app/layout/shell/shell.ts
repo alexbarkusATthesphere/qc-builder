@@ -20,6 +20,7 @@ export class ShellComponent {
   navItems: NavItem[] = [
     { label: 'dashboard', route: '/dashboard', icon: 'dashboard' },
     { label: 'projects', route: '/projects', icon: 'folder' },
+    { label: 'waterfall', route: '/charts/waterfall', icon: 'waterfall' },
   ];
 
   toggleSidebar(): void {

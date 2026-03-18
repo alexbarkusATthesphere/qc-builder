@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
 
 import { StatusBadgeComponent } from '../../../../shared/components/status-badge/status-badge';
-import { TaskDetailRead } from '../../../../services/task';
+import { TaskDetailRead, TaskRead } from '../../../../services/task';
 import { StatusDefinitionRead, TaskCategoryRead } from '../../../../services/template';
 import { ProjectComponentRead } from '../../../../services/project';
 
@@ -20,9 +20,17 @@ export class TaskDetailPanelComponent {
   components = input<ProjectComponentRead[]>([]);
 
   closed = output<void>();
+  editRequested = output<TaskRead>();
 
   close(): void {
     this.closed.emit();
+  }
+
+  onEditClick(): void {
+    const t = this.task();
+    if (t) {
+      this.editRequested.emit(t as TaskRead);
+    }
   }
 
   onOverlayClick(event: MouseEvent): void {

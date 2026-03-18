@@ -1,1 +1,171 @@
-<p>task-form works!</p>
+<!-- Overlay + Panel -->
+<div class="tf__overlay" (click)="onOverlayClick($event)">
+  <aside class="tf__panel">
+    <!-- Header -->
+    <div class="tf__header">
+      <h2 class="tf__heading">{{ heading() }}</h2>
+      <button class="tf__close" (click)="close()" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="tf__close-icon">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Form body -->
+    <form class="tf__body" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <!-- Title -->
+      <div class="tf__field">
+        <label class="tf__label" for="tf-title">Title <span class="tf__req">*</span></label>
+        <input
+          id="tf-title"
+          class="tf__input"
+          [class.tf__input--error]="hasError('title')"
+          type="text"
+          formControlName="title"
+          placeholder="Brief summary of the task"
+        />
+        @if (hasError('title')) {
+          <span class="tf__error">Title is required</span>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="tf__field">
+        <label class="tf__label" for="tf-desc">Description</label>
+        <textarea
+          id="tf-desc"
+          class="tf__textarea"
+          formControlName="description"
+          rows="3"
+          placeholder="Additional detail or context…"
+        ></textarea>
+      </div>
+
+      <!-- Two-column grid for selects -->
+      <div class="tf__grid">
+        <!-- Status -->
+        <div class="tf__field">
+          <label class="tf__label" for="tf-status">Status <span class="tf__req">*</span></label>
+          <select
+            id="tf-status"
+            class="tf__select"
+            [class.tf__select--error]="hasError('status_id')"
+            formControlName="status_id"
+          >
+            <option [ngValue]="null" disabled>Select status</option>
+            @for (s of statuses(); track s.id) {
+              <option [ngValue]="s.id">{{ s.name }}</option>
+            }
+          </select>
+          @if (hasError('status_id')) {
+            <span class="tf__error">Status is required</span>
+          }
+        </div>
+
+        <!-- Priority -->
+        <div class="tf__field">
+          <label class="tf__label" for="tf-priority">Priority</label>
+          <select id="tf-priority" class="tf__select" formControlName="priority">
+            @for (p of priorities; track p.value) {
+              <option [ngValue]="p.value">{{ p.label }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Category -->
+        <div class="tf__field">
+          <label class="tf__label" for="tf-category">Category <span class="tf__req">*</span></label>
+          <select
+            id="tf-category"
+            class="tf__select"
+            [class.tf__select--error]="hasError('category_id')"
+            formControlName="category_id"
+          >
+            <option [ngValue]="null" disabled>Select category</option>
+            @for (c of categories(); track c.id) {
+              <option [ngValue]="c.id">{{ c.name }}</option>
+            }
+          </select>
+          @if (hasError('category_id')) {
+            <span class="tf__error">Category is required</span>
+          }
+        </div>
+
+        <!-- Type (filtered by category) -->
+        <div class="tf__field">
+          <label class="tf__label" for="tf-type">Type</label>
+          <select id="tf-type" class="tf__select" formControlName="type_id">
+            <option [ngValue]="null">None</option>
+            @for (t of filteredTypes(); track t.id) {
+              <option [ngValue]="t.id">{{ t.name }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Component -->
+        <div class="tf__field">
+          <label class="tf__label" for="tf-component">Component</label>
+          <select id="tf-component" class="tf__select" formControlName="component_id">
+            <option [ngValue]="null">None</option>
+            @for (c of components(); track c.id) {
+              <option [ngValue]="c.id">{{ c.name }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Environment -->
+        <div class="tf__field">
+          <label class="tf__label" for="tf-env">Environment</label>
+          <select id="tf-env" class="tf__select" formControlName="environment">
+            <option [ngValue]="null">None</option>
+            @for (e of environments; track e.value) {
+              <option [ngValue]="e.value">{{ e.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Assignee (full width) -->
+      <div class="tf__field">
+        <label class="tf__label" for="tf-assignee">Assignee</label>
+        <input
+          id="tf-assignee"
+          class="tf__input"
+          type="text"
+          formControlName="assignee"
+          placeholder="e.g. jsmith"
+        />
+      </div>
+
+      <!-- Date row -->
+      <div class="tf__grid">
+        <div class="tf__field">
+          <label class="tf__label" for="tf-start">Start Date</label>
+          <input id="tf-start" class="tf__input" type="date" formControlName="start_date" />
+        </div>
+        <div class="tf__field">
+          <label class="tf__label" for="tf-due">Due Date</label>
+          <input id="tf-due" class="tf__input" type="date" formControlName="due_date" />
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="tf__actions">
+        <button class="tf__btn tf__btn--ghost" type="button" (click)="close()">Cancel</button>
+        <button
+          class="tf__btn tf__btn--primary"
+          type="submit"
+          [disabled]="saving()"
+        >
+          @if (saving()) {
+            <span class="tf__btn-spinner"></span>
+          }
+          {{ isEdit() ? 'Save Changes' : 'Create Task' }}
+        </button>
+      </div>
+    </form>
+  </aside>
+</div>

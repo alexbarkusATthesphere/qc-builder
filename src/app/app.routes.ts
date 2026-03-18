@@ -29,7 +29,7 @@ export const routes: Routes = [
   {
     path: 'charts',
     loadChildren: () =>
-      import('./features/charts/charts.routes').then((m) => m.CHART_ROUTES),
+      import('./features/charts/charts.routes').then((m) => m.CHARTS_ROUTES),
   },
   {
     path: '**',

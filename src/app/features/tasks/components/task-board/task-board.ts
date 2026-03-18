@@ -24,6 +24,7 @@ export class TaskBoardComponent {
   components = input<ProjectComponentRead[]>([]);
 
   taskClicked = output<TaskRead>();
+  createRequested = output<void>();
 
   columns = computed<KanbanColumn[]>(() => {
     const tasks = this.tasks();
@@ -70,5 +71,9 @@ export class TaskBoardComponent {
 
   onCardClick(task: TaskRead): void {
     this.taskClicked.emit(task);
+  }
+
+  onCreateClick(): void {
+    this.createRequested.emit();
   }
 }

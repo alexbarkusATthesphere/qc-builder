@@ -1,1 +1,398 @@
-<p>waterfall-chart works!</p>
+@if (loading()) {
+  <div class="wf__loading">
+    <div class="wf__spinner"></div>
+    <span>loading waterfall</span>
+  </div>
+} @else {
+  <div class="wf">
+
+    <!-- ===== Header ===== -->
+    <div class="wf__header">
+      <div>
+        <h1 class="wf__title">waterfall</h1>
+        <p class="wf__subtitle">task timeline · {{ projectName() }}</p>
+      </div>
+
+      <div class="wf__header-right">
+        <!-- View mode toggle -->
+        <div class="wf__view-toggle">
+          <button class="wf__view-btn"
+                  [class.wf__view-btn--active]="viewMode() === 'technical'"
+                  (click)="setViewMode('technical')" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="wf__view-icon">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+            Technical
+          </button>
+          <button class="wf__view-btn"
+                  [class.wf__view-btn--active]="viewMode() === 'executive'"
+                  (click)="setViewMode('executive')" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="wf__view-icon">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            Executive
+          </button>
+        </div>
+
+        @if (!isExecutiveView()) {
+          <button class="wf__create-btn" (click)="onCreateTask()" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" class="wf__create-icon">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            New Task
+          </button>
+        }
+
+        <!-- Summary -->
+        <div class="wf__summary">
+          <div class="wf__summary-stat">
+            <span class="wf__summary-value">{{ totalFiltered() }}</span>
+            <span class="wf__summary-label">tasks</span>
+          </div>
+          <span class="wf__summary-divider"></span>
+          <div class="wf__summary-stat">
+            <span class="wf__summary-value">{{ completionPercent() }}<small>%</small></span>
+            <span class="wf__summary-label">complete</span>
+          </div>
+          <span class="wf__summary-divider"></span>
+          <div class="wf__summary-stat">
+            <span class="wf__summary-value wf__summary-value--blocked">{{ blockedCount() }}</span>
+            <span class="wf__summary-label">blocked</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Controls Bar ===== -->
+    <div class="wf__controls">
+      <!-- Environment filter tabs -->
+      <div class="wf__tab-group">
+        <button class="wf__tab" [class.wf__tab--active]="envFilter() === 'all'"
+                (click)="setEnvFilter('all')">All</button>
+        <button class="wf__tab" [class.wf__tab--active]="envFilter() === 'dev'"
+                (click)="setEnvFilter('dev')">
+          <span class="wf__tab-dot" style="background:#3B82F6"></span>Dev
+        </button>
+        <button class="wf__tab" [class.wf__tab--active]="envFilter() === 'test'"
+                (click)="setEnvFilter('test')">
+          <span class="wf__tab-dot" style="background:#F59E0B"></span>Test
+        </button>
+        <button class="wf__tab" [class.wf__tab--active]="envFilter() === 'prod'"
+                (click)="setEnvFilter('prod')">
+          <span class="wf__tab-dot" style="background:#10B981"></span>Prod
+        </button>
+      </div>
+
+      <!-- Group by -->
+      <div class="wf__control-group">
+        <label class="wf__control-label">Group</label>
+        <div class="wf__tab-group wf__tab-group--sm">
+          <button class="wf__tab wf__tab--sm" [class.wf__tab--active]="groupBy() === 'component'"
+                  (click)="setGroupBy('component')">Component</button>
+          <button class="wf__tab wf__tab--sm" [class.wf__tab--active]="groupBy() === 'category'"
+                  (click)="setGroupBy('category')">Category</button>
+          <button class="wf__tab wf__tab--sm" [class.wf__tab--active]="groupBy() === 'environment'"
+                  (click)="setGroupBy('environment')">Environment</button>
+        </div>
+      </div>
+
+      <!-- Priority filter -->
+      <div class="wf__control-group">
+        <label class="wf__control-label">Priority</label>
+        <div class="wf__tab-group wf__tab-group--sm">
+          <button class="wf__tab wf__tab--sm" [class.wf__tab--active]="priorityFilter() === 'all'"
+                  (click)="setPriorityFilter('all')">All</button>
+          <button class="wf__tab wf__tab--sm wf__tab--critical" [class.wf__tab--active]="priorityFilter() === 'critical'"
+                  (click)="setPriorityFilter('critical')">Crit</button>
+          <button class="wf__tab wf__tab--sm wf__tab--high" [class.wf__tab--active]="priorityFilter() === 'high'"
+                  (click)="setPriorityFilter('high')">High</button>
+          <button class="wf__tab wf__tab--sm" [class.wf__tab--active]="priorityFilter() === 'medium'"
+                  (click)="setPriorityFilter('medium')">Med</button>
+        </div>
+      </div>
+
+      <div class="wf__controls-spacer"></div>
+
+      <!-- Search -->
+      <div class="wf__search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             class="wf__search-icon">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="wf__search-input" type="text" placeholder="Search tasks…"
+               [value]="searchQuery()" (input)="onSearchInput($event)">
+      </div>
+
+      <!-- Today button -->
+      <button class="wf__today-btn" (click)="scrollToToday()" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" class="wf__today-icon">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Today
+      </button>
+
+      <!-- Export button -->
+      <button class="wf__export-btn" (click)="exportToPage()" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="wf__export-icon">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Export
+      </button>
+    </div>
+
+    <!-- ===== Status Legend ===== -->
+    <div class="wf__legend">
+      @for (s of statusLegend(); track s.name) {
+        <div class="wf__legend-item">
+          <span class="wf__legend-swatch" [style.background]="s.color"></span>
+          <span class="wf__legend-label">{{ s.name }}</span>
+        </div>
+      }
+      <span class="wf__legend-sep"></span>
+      <div class="wf__legend-item">
+        <span class="wf__legend-swatch wf__legend-swatch--today"></span>
+        <span class="wf__legend-label">Today</span>
+      </div>
+    </div>
+
+    <!-- ===== Chart Area ===== -->
+    <div class="wf__chart">
+
+      <!-- Left: Label column -->
+      <div class="wf__labels" #labelColumn>
+        <div class="wf__labels-header">
+          <span class="wf__labels-title">Task</span>
+        </div>
+        <div class="wf__labels-body">
+          <div class="wf__labels-content" [style.height.px]="totalContentHeight()">
+            @for (group of groups(); track group.key; let gi = $index) {
+              <!-- Group header -->
+              <div class="wf__label-group"
+                   [style.top.px]="getGroupHeaderOffset(gi)"
+                   (click)="toggleGroup(group.key)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     class="wf__collapse-icon"
+                     [class.wf__collapse-icon--collapsed]="group.collapsed">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+                <span class="wf__label-group-dot" [style.background]="group.color"></span>
+                <span class="wf__label-group-name">{{ group.label }}</span>
+                <span class="wf__label-group-count">{{ group.bars.length }}</span>
+                @if (group.collapsed) {
+                  <span class="wf__label-group-stats">
+                    <span class="wf__label-stat wf__label-stat--done">{{ group.summary.completedCount }}</span>
+                    <span class="wf__label-stat-sep">/</span>
+                    <span class="wf__label-stat">{{ group.summary.totalCount }}</span>
+                    @if (group.summary.blockedCount > 0) {
+                      <span class="wf__label-stat wf__label-stat--blocked">· {{ group.summary.blockedCount }}b</span>
+                    }
+                  </span>
+                }
+              </div>
+
+              <!-- Task rows -->
+              @if (!group.collapsed) {
+                @for (bar of group.bars; track bar.task.id; let bi = $index) {
+                  <div class="wf__label-row"
+                       [style.top.px]="getRowOffset(gi, bi)"
+                       (click)="onBarClick(bar)">
+                    <span class="wf__label-priority" [class]="bar.priorityClass"></span>
+                    <span class="wf__label-text" [title]="bar.task.title">{{ bar.task.title }}</span>
+                  </div>
+                }
+              }
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Timeline -->
+      <div class="wf__timeline">
+
+        <!-- Timeline header (months) -->
+        <div class="wf__timeline-header" #timelineHeader>
+          <div class="wf__timeline-header-inner" [style.width.px]="timelineWidth()">
+            @for (month of months(); track month.label) {
+              <div class="wf__month-marker"
+                   [style.left.px]="month.left"
+                   [style.width.px]="month.width">
+                <span class="wf__month-label">{{ month.label }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Timeline body (bars + gridlines) -->
+        <div class="wf__timeline-body" #timelineBody (scroll)="onTimelineScroll($event)">
+          <div class="wf__timeline-canvas"
+               [style.width.px]="timelineWidth()"
+               [style.height.px]="totalContentHeight()">
+
+            <!-- Week gridlines -->
+            @for (week of weeks(); track week.left) {
+              <div class="wf__gridline" [style.left.px]="week.left"></div>
+            }
+
+            <!-- Today marker -->
+            @if (todayVisible()) {
+              <div class="wf__today-line" [style.left.px]="todayPx()">
+                <span class="wf__today-label">Today</span>
+              </div>
+            }
+
+            <!-- Groups and bars -->
+            @for (group of groups(); track group.key; let gi = $index) {
+
+              <!-- Group header background -->
+              <div class="wf__timeline-group-row"
+                   [style.top.px]="getGroupHeaderOffset(gi)"
+                   [style.width.px]="timelineWidth()">
+
+                <!-- Summary bar (visible when collapsed) -->
+                @if (group.collapsed && group.summary.totalCount > 0) {
+                  <div class="wf__summary-bar"
+                       [style.left.px]="group.summary.left"
+                       [style.width.px]="group.summary.width">
+
+                    <!-- Completed segment -->
+                    @if (group.summary.completedPercent > 0) {
+                      <div class="wf__summary-seg wf__summary-seg--done"
+                           [style.width.%]="group.summary.completedPercent">
+                      </div>
+                    }
+
+                    <!-- In Progress segment -->
+                    @if (group.summary.inProgressPercent > 0) {
+                      <div class="wf__summary-seg wf__summary-seg--progress"
+                           [style.width.%]="group.summary.inProgressPercent">
+                      </div>
+                    }
+
+                    <!-- Blocked segment -->
+                    @if (group.summary.blockedPercent > 0) {
+                      <div class="wf__summary-seg wf__summary-seg--blocked"
+                           [style.width.%]="group.summary.blockedPercent">
+                      </div>
+                    }
+
+                    <!-- Date labels -->
+                    <span class="wf__summary-date wf__summary-date--start">{{ group.summary.startLabel }}</span>
+                    <span class="wf__summary-date wf__summary-date--end">{{ group.summary.endLabel }}</span>
+
+                    <!-- Completion label -->
+                    @if (group.summary.width > 100) {
+                      <span class="wf__summary-pct">{{ group.summary.completedPercent }}%</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              @if (!group.collapsed) {
+                @for (bar of group.bars; track bar.task.id; let bi = $index) {
+                  <div class="wf__bar-row" [style.top.px]="getRowOffset(gi, bi)">
+                    <!-- The bar -->
+                    <div class="wf__bar"
+                         [class]="getBarStatusClass(bar)"
+                         [style.left.px]="bar.left"
+                         [style.width.px]="bar.width"
+                         (mouseenter)="onBarMouseEnter($event, bar)"
+                         (mouseleave)="onBarMouseLeave()"
+                         (click)="onBarClick(bar)">
+
+                      <!-- Progress fill for in-progress tasks -->
+                      @if (bar.progressPercent > 0 && bar.progressPercent < 100) {
+                        <div class="wf__bar-progress"
+                             [style.width.%]="bar.progressPercent"></div>
+                      }
+
+                      <!-- Bar label (only show if wide enough) -->
+                      @if (bar.width > 80) {
+                        <span class="wf__bar-label">{{ bar.task.title }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== Tooltip ===== -->
+@if (tooltip().visible && tooltip().bar) {
+  <div class="wf__tooltip"
+       [style.left.px]="tooltip().x"
+       [style.top.px]="tooltip().y">
+    <div class="wf__tooltip-title">{{ tooltip().bar!.task.title }}</div>
+    <div class="wf__tooltip-row">
+      <span class="wf__tooltip-label">Status</span>
+      <app-status-badge [label]="tooltip().bar!.statusName" [color]="tooltip().bar!.statusColor" size="sm" />
+    </div>
+    <div class="wf__tooltip-row">
+      <span class="wf__tooltip-label">Dates</span>
+      <span class="wf__tooltip-value">{{ formatDate(tooltip().bar!.task.start_date) }} → {{ formatDate(tooltip().bar!.task.due_date) }}</span>
+    </div>
+    <div class="wf__tooltip-row">
+      <span class="wf__tooltip-label">Priority</span>
+      <span class="wf__tooltip-value wf__tooltip-priority" [class]="tooltip().bar!.priorityClass">
+        {{ tooltip().bar!.task.priority }}
+      </span>
+    </div>
+    @if (tooltip().bar!.task.assignee) {
+      <div class="wf__tooltip-row">
+        <span class="wf__tooltip-label">Assignee</span>
+        <span class="wf__tooltip-value">{{ tooltip().bar!.task.assignee }}</span>
+      </div>
+    }
+    <div class="wf__tooltip-row">
+      <span class="wf__tooltip-label">Component</span>
+      <span class="wf__tooltip-value">{{ tooltip().bar!.componentName }}</span>
+    </div>
+  </div>
+}
+
+<!-- ===== Task Detail Slide-over ===== -->
+@if (showDetailPanel()) {
+  <app-task-detail-panel
+    [task]="selectedTaskDetail()"
+    [loading]="detailLoading()"
+    [statuses]="statuses()"
+    [categories]="categories()"
+    [components]="currentComponents()"
+    (closed)="onDetailClosed()"
+    (editRequested)="onEditRequested($event)"
+  />
+}
+
+<!-- ===== Task Form Slide-over ===== -->
+@if (!isExecutiveView() && showFormPanel()) {
+  <app-task-form
+    [mode]="formMode()"
+    [projectId]="currentProjectId()"
+    [task]="formTask()"
+    [statuses]="statuses()"
+    [categories]="categories()"
+    [types]="currentTypes()"
+    [components]="currentComponents()"
+    [saving]="formSaving()"
+    (saved)="onFormSaved($event)"
+    (closed)="onFormClosed()"
+  />
+}

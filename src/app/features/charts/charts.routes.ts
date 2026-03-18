@@ -1,14 +1,23 @@
 import { Routes } from '@angular/router';
 
-export const CHART_ROUTES: Routes = [
+export const CHARTS_ROUTES: Routes = [
   {
     path: '',
-    loadComponent: () =>
-      import('./components/gnatt-chart/gnatt-chart').then((m) => m.GnattChart),
+    redirectTo: 'waterfall',
+    pathMatch: 'full',
   },
   {
     path: 'waterfall',
     loadComponent: () =>
-      import('./components/waterfall-chart/waterfall-chart').then((m) => m.WaterfallChart),
+      import('./components/waterfall-chart/waterfall-chart').then(
+        (m) => m.WaterfallChartComponent,
+      ),
   },
+  // {
+  //   path: 'gantt',
+  //   loadComponent: () =>
+  //     import('./components/gnatt-chart/gnatt-chart').then(
+  //       (m) => m.GnattChartComponent,
+  //     ),
+  // },
 ];

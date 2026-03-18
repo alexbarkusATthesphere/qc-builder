@@ -8,6 +8,7 @@
   display: block;
   height: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 .tb {
@@ -220,4 +221,45 @@
   color: var(--s-text-4);
   font-style: italic;
   letter-spacing: 0.02em;
+}
+
+/* ── Floating create button ── */
+
+.tb__create-fab {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--s-radius-md);
+  background: var(--s-blue);
+  color: var(--s-black);
+  font-family: var(--s-font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(5, 195, 221, 0.25),
+              0 0 0 1px rgba(5, 195, 221, 0.15);
+  transition: box-shadow var(--s-duration) var(--s-ease),
+              transform var(--s-duration) var(--s-ease);
+}
+
+.tb__create-fab:hover {
+  box-shadow: 0 6px 28px rgba(5, 195, 221, 0.35),
+              0 0 0 1px rgba(5, 195, 221, 0.25);
+  transform: translateY(-1px);
+}
+
+.tb__create-fab:active {
+  transform: translateY(0);
+}
+
+.tb__create-icon {
+  width: 14px;
+  height: 14px;
 }

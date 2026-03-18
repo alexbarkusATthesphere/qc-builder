@@ -1,0 +1,338 @@
+/* =========================================================================
+   Task Form — Slide-over · Sphere Brand
+   Consumes tokens from sphere.css
+   ========================================================================= */
+
+/* ── Overlay ── */
+
+.tf__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: flex-end;
+  animation: tf-fadeIn 0.15s var(--s-ease);
+}
+
+@keyframes tf-fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Panel ── */
+
+.tf__panel {
+  width: 540px;
+  max-width: 92vw;
+  height: 100%;
+  background: var(--s-surface-1);
+  border-left: 1px solid var(--s-border);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.3);
+  animation: tf-slideIn 0.2s var(--s-ease);
+}
+
+@keyframes tf-slideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* ── Header ── */
+
+.tf__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--s-border);
+  flex-shrink: 0;
+}
+
+.tf__heading {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--s-text);
+  letter-spacing: 0.01em;
+}
+
+.tf__close {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: var(--s-radius-sm);
+  color: var(--s-text-3);
+  cursor: pointer;
+  transition: background var(--s-duration) var(--s-ease),
+              color var(--s-duration) var(--s-ease);
+}
+
+.tf__close:hover {
+  background: var(--s-surface-3);
+  color: var(--s-text);
+}
+
+.tf__close-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Body ── */
+
+.tf__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--s-border-hover) transparent;
+}
+
+.tf__body::-webkit-scrollbar { width: 4px; }
+.tf__body::-webkit-scrollbar-track { background: transparent; }
+.tf__body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+/* ── Two-column grid ── */
+
+.tf__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Field ── */
+
+.tf__field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tf__label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--s-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.tf__req {
+  color: var(--s-critical);
+}
+
+/* ── Input ── */
+
+.tf__input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-radius-sm);
+  font-family: var(--s-font);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--s-text);
+  background: var(--s-surface-2);
+  outline: none;
+  transition: border-color var(--s-duration) var(--s-ease),
+              box-shadow var(--s-duration) var(--s-ease);
+  letter-spacing: 0.02em;
+}
+
+.tf__input:focus {
+  border-color: var(--s-blue);
+  box-shadow: 0 0 0 2px rgba(5, 195, 221, 0.10);
+}
+
+.tf__input::placeholder {
+  color: var(--s-text-4);
+  font-weight: 300;
+}
+
+.tf__input--error {
+  border-color: var(--s-critical);
+}
+
+.tf__input--error:focus {
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.12);
+}
+
+/* Date inputs — style the native chrome */
+.tf__input[type="date"] {
+  color-scheme: dark;
+}
+
+/* ── Textarea ── */
+
+.tf__textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-radius-sm);
+  font-family: var(--s-font);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--s-text);
+  background: var(--s-surface-2);
+  outline: none;
+  resize: vertical;
+  min-height: 64px;
+  line-height: 1.6;
+  transition: border-color var(--s-duration) var(--s-ease),
+              box-shadow var(--s-duration) var(--s-ease);
+  letter-spacing: 0.02em;
+}
+
+.tf__textarea:focus {
+  border-color: var(--s-blue);
+  box-shadow: 0 0 0 2px rgba(5, 195, 221, 0.10);
+}
+
+.tf__textarea::placeholder {
+  color: var(--s-text-4);
+  font-weight: 300;
+}
+
+/* ── Select ── */
+
+.tf__select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-radius-sm);
+  font-family: var(--s-font);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--s-text);
+  background: var(--s-surface-2);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.38)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+  transition: border-color var(--s-duration) var(--s-ease),
+              box-shadow var(--s-duration) var(--s-ease);
+}
+
+.tf__select:focus {
+  border-color: var(--s-blue);
+  box-shadow: 0 0 0 2px rgba(5, 195, 221, 0.10);
+}
+
+.tf__select--error {
+  border-color: var(--s-critical);
+}
+
+.tf__select option {
+  background: var(--s-surface-2);
+  color: var(--s-text);
+}
+
+/* ── Validation error ── */
+
+.tf__error {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--s-critical);
+  letter-spacing: 0.02em;
+}
+
+/* ── Actions ── */
+
+.tf__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  margin-top: auto;
+  border-top: 1px solid var(--s-border);
+  padding-top: 18px;
+}
+
+/* Ghost button */
+.tf__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  border-radius: var(--s-radius-sm);
+  font-family: var(--s-font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border: none;
+  transition: background var(--s-duration) var(--s-ease),
+              color var(--s-duration) var(--s-ease),
+              box-shadow var(--s-duration) var(--s-ease),
+              opacity var(--s-duration) var(--s-ease);
+}
+
+.tf__btn--ghost {
+  background: transparent;
+  color: var(--s-text-3);
+  border: 1px solid var(--s-border);
+}
+
+.tf__btn--ghost:hover {
+  background: var(--s-surface-3);
+  color: var(--s-text);
+  border-color: var(--s-border-hover);
+}
+
+/* Primary button */
+.tf__btn--primary {
+  background: var(--s-blue);
+  color: var(--s-black);
+}
+
+.tf__btn--primary:hover {
+  box-shadow: 0 0 16px rgba(5, 195, 221, 0.25);
+}
+
+.tf__btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Spinner inside button */
+.tf__btn-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: var(--s-black);
+  border-radius: 50%;
+  animation: tf-spin 0.7s linear infinite;
+}
+
+@keyframes tf-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  .tf__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tf__panel {
+    width: 100%;
+    max-width: 100vw;
+  }
+}
