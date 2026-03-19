@@ -264,40 +264,48 @@
 
                 <!-- Summary bar (visible when collapsed) -->
                 @if (group.collapsed && group.summary.totalCount > 0) {
-                  <div class="wf__summary-bar"
-                       [style.left.px]="group.summary.left"
-                       [style.width.px]="group.summary.width">
+                  @if (group.summary.width > 0) {
+                    <div class="wf__summary-bar"
+                         [style.left.px]="group.summary.left"
+                         [style.width.px]="group.summary.width">
 
-                    <!-- Completed segment -->
-                    @if (group.summary.completedPercent > 0) {
-                      <div class="wf__summary-seg wf__summary-seg--done"
-                           [style.width.%]="group.summary.completedPercent">
-                      </div>
-                    }
+                      <!-- Completed segment -->
+                      @if (group.summary.completedPercent > 0) {
+                        <div class="wf__summary-seg wf__summary-seg--done"
+                             [style.width.%]="group.summary.completedPercent">
+                        </div>
+                      }
 
-                    <!-- In Progress segment -->
-                    @if (group.summary.inProgressPercent > 0) {
-                      <div class="wf__summary-seg wf__summary-seg--progress"
-                           [style.width.%]="group.summary.inProgressPercent">
-                      </div>
-                    }
+                      <!-- In Progress segment -->
+                      @if (group.summary.inProgressPercent > 0) {
+                        <div class="wf__summary-seg wf__summary-seg--progress"
+                             [style.width.%]="group.summary.inProgressPercent">
+                        </div>
+                      }
 
-                    <!-- Blocked segment -->
-                    @if (group.summary.blockedPercent > 0) {
-                      <div class="wf__summary-seg wf__summary-seg--blocked"
-                           [style.width.%]="group.summary.blockedPercent">
-                      </div>
-                    }
+                      <!-- Blocked segment -->
+                      @if (group.summary.blockedPercent > 0) {
+                        <div class="wf__summary-seg wf__summary-seg--blocked"
+                             [style.width.%]="group.summary.blockedPercent">
+                        </div>
+                      }
 
-                    <!-- Date labels -->
-                    <span class="wf__summary-date wf__summary-date--start">{{ group.summary.startLabel }}</span>
-                    <span class="wf__summary-date wf__summary-date--end">{{ group.summary.endLabel }}</span>
+                      <!-- Date labels -->
+                      <span class="wf__summary-date wf__summary-date--start">{{ group.summary.startLabel }}</span>
+                      <span class="wf__summary-date wf__summary-date--end">{{ group.summary.endLabel }}</span>
 
-                    <!-- Completion label -->
-                    @if (group.summary.width > 100) {
-                      <span class="wf__summary-pct">{{ group.summary.completedPercent }}%</span>
-                    }
-                  </div>
+                      <!-- Completion label -->
+                      @if (group.summary.width > 100) {
+                        <span class="wf__summary-pct">{{ group.summary.completedPercent }}%</span>
+                      }
+                    </div>
+                  } @else {
+                    <!-- No dated tasks — show "not scheduled" chip near today marker -->
+                    <div class="wf__unscheduled-chip"
+                         [style.left.px]="todayPx() > 0 ? todayPx() + 12 : 24">
+                      <span class="wf__unscheduled-label">{{ group.summary.totalCount }} tasks · not scheduled</span>
+                    </div>
+                  }
                 }
               </div>
 

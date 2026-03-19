@@ -311,12 +311,18 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
     const components = this.project()?.components ?? [];
     const componentMap = new Map(components.map(c => [c.id, c]));
 
-    // Build bars
+    // Build bars — include ALL tasks, using placeholder position for undated ones
     const bars: WaterfallBar[] = tasks
-      .filter(t => t.start_date)
       .map(t => {
-        const start = new Date(t.start_date!);
-        const end = t.due_date ? new Date(t.due_date) : new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const hasDates = !!t.start_date;
+        const start = t.start_date
+          ? new Date(t.start_date)
+          : new Date(); // placeholder: today
+        const end = t.due_date
+          ? new Date(t.due_date)
+          : hasDates
+            ? new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000)
+            : new Date(); // zero-width placeholder for undated
         const status = statusMap.get(t.status_id);
         const category = categoryMap.get(t.category_id);
         const component = t.component_id ? componentMap.get(t.component_id) : null;
@@ -329,13 +335,15 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
         } else if (status?.name === 'In Progress' || status?.name === 'In Review') {
           const totalMs = end.getTime() - start.getTime();
           const elapsedMs = new Date().getTime() - start.getTime();
-          progressPercent = Math.min(95, Math.max(5, Math.round((elapsedMs / totalMs) * 100)));
+          progressPercent = totalMs > 0
+            ? Math.min(95, Math.max(5, Math.round((elapsedMs / totalMs) * 100)))
+            : 0;
         }
 
         return {
           task: t,
           left: this.dateToPx(start),
-          width: Math.max(DAY_PX, this.dateToPx(end) - this.dateToPx(start)),
+          width: hasDates ? Math.max(DAY_PX, this.dateToPx(end) - this.dateToPx(start)) : 0,
           statusName: status?.name ?? 'Unknown',
           statusColor: status?.color ?? '#94a3b8',
           priorityClass: `wf__pri--${(t.priority ?? 'medium').toLowerCase()}`,
@@ -399,11 +407,13 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
         b.task.status_id === inProgressId || b.task.status_id === inReviewId
       ).length;
 
-      // Span: earliest left edge → rightmost right edge
-      const summaryLeft = bars.length > 0 ? Math.min(...bars.map(b => b.left)) : 0;
-      const summaryRight = bars.length > 0
-        ? Math.max(...bars.map(b => b.left + b.width)) : 0;
-      const summaryWidth = Math.max(DAY_PX, summaryRight - summaryLeft);
+      // Span: earliest left edge → rightmost right edge (only from dated bars)
+      const datedBars = bars.filter(b => b.task.start_date);
+      const summaryLeft = datedBars.length > 0 ? Math.min(...datedBars.map(b => b.left)) : 0;
+      const summaryRight = datedBars.length > 0
+        ? Math.max(...datedBars.map(b => b.left + b.width)) : 0;
+      const summaryWidth = datedBars.length > 0
+        ? Math.max(DAY_PX, summaryRight - summaryLeft) : 0;
 
       // Date labels for the summary
       const startDates = bars
@@ -443,10 +453,15 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
       };
     });
 
-    // Sort groups: env order for environment grouping, alphabetical otherwise
+    // Sort groups: env order for environment, display_order for category, alphabetical for component
     if (groupBy === 'environment') {
       groups.sort((a, b) =>
         (ENV_SORT_ORDER[a.key] ?? 99) - (ENV_SORT_ORDER[b.key] ?? 99)
+      );
+    } else if (groupBy === 'category') {
+      const catOrderMap = new Map(this.categories().map(c => [c.name, c.display_order]));
+      groups.sort((a, b) =>
+        (catOrderMap.get(a.key) ?? 99) - (catOrderMap.get(b.key) ?? 99)
       );
     } else {
       groups.sort((a, b) => a.label.localeCompare(b.label));
