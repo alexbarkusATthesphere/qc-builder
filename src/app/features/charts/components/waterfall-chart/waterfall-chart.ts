@@ -812,10 +812,80 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
       if (milestoneTypeIds.size > 0 && (t as any).type_id && milestoneTypeIds.has((t as any).type_id)) return true;
       return /^Hire \d+ Junior Developer/i.test(t.title);
     };
-    const exportGroups = sortedGroups.map(g => ({
+    let exportGroups = sortedGroups.map(g => ({
       ...g,
       bars: g.bars.filter(b => !isMilestone(b.task)),
     }));
+
+    // ── Compute Scale sub-bar data (3 colored bars within one Scale row) ──
+    const SCALE_SUBGROUP_MAP: Record<string, string> = {
+      'Guest Services Rollout': 'GS & Building Ops',
+      'Building Operations Rollout': 'GS & Building Ops',
+      'Food & Beverage Rollout': 'Food & Beverage',
+    };
+    const SCALE_SUBGROUP_COLORS: Record<string, string> = {
+      'GS & Building Ops': '#34d399',
+      'System Expansion': '#EC4899',
+      'Food & Beverage': '#a78bfa',
+    };
+    const SCALE_SUBGROUP_ORDER: Record<string, number> = {
+      'GS & Building Ops': 0,
+      'Food & Beverage': 1,
+      'System Expansion': 2,
+    };
+
+    // Build type_id → type name lookup from loaded types
+    const typeNameMap = new Map<number, string>(
+      this.currentTypes().map((t: any) => [t.id, t.name])
+    );
+
+    type ScaleSubBar = {
+      label: string;
+      color: string;
+      leftPct: number;
+      widthPct: number;
+      taskCount: number;
+      completedCount: number;
+      startDate: string;
+      endDate: string;
+    }
+    let scaleSubBars: ScaleSubBar[] = [];
+
+    const scaleGroup = exportGroups.find(g => g.label === 'Scale');
+    if (scaleGroup) {
+      const subGroupBars = new Map<string, WaterfallBar[]>();
+      for (const bar of scaleGroup.bars) {
+        const typeId = (bar.task as any).type_id as number | undefined;
+        const typeName = typeId ? (typeNameMap.get(typeId) ?? '') : '';
+        const subLabel = SCALE_SUBGROUP_MAP[typeName] ?? 'System Expansion';
+        if (!subGroupBars.has(subLabel)) subGroupBars.set(subLabel, []);
+        subGroupBars.get(subLabel)!.push(bar);
+      }
+
+      scaleSubBars = Array.from(subGroupBars.entries())
+        .sort((a, b) => (SCALE_SUBGROUP_ORDER[a[0]] ?? 99) - (SCALE_SUBGROUP_ORDER[b[0]] ?? 99))
+        .map(([label, bars]) => {
+          const dated = bars.filter(b => b.task.start_date);
+          const startDates = dated.map(b => b.task.start_date!).sort();
+          const endDates = dated.map(b => b.task.due_date ?? b.task.start_date!).sort().reverse();
+          const minMs = dated.length > 0 ? Math.min(...dated.map(b => new Date(b.task.start_date!).getTime())) : tStart;
+          const maxMs = dated.length > 0 ? Math.max(...dated.map(b => {
+            const end = b.task.due_date ?? b.task.start_date;
+            return end ? new Date(end).getTime() : tStart;
+          })) : tStart;
+          return {
+            label,
+            color: SCALE_SUBGROUP_COLORS[label] ?? '#EC4899',
+            leftPct: totalMs > 0 ? ((minMs - tStart) / totalMs) * 100 : 0,
+            widthPct: totalMs > 0 ? Math.max(0.5, ((maxMs - minMs) / totalMs) * 100) : 0,
+            taskCount: bars.length,
+            completedCount: bars.filter(b => b.isCompleted).length,
+            startDate: startDates[0] ?? '',
+            endDate: endDates[0] ?? '',
+          };
+        });
+    }
+
     // Recompute summary counts after filtering
     const blockedId = this.statuses().find(s => s.name === 'Blocked')?.id;
     const inProgressId = this.statuses().find(s => s.name === 'In Progress')?.id;
@@ -829,6 +899,18 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
       const ipCount = g.bars.filter(b =>
         b.task.status_id === inProgressId || b.task.status_id === inReviewId
       ).length;
+
+      // Recompute date labels from bars
+      const startDates = g.bars
+        .map(b => b.task.start_date).filter(Boolean) as string[];
+      const endDates = g.bars
+        .map(b => b.task.due_date ?? b.task.start_date).filter(Boolean) as string[];
+      const minDate = startDates.length > 0 ? startDates.sort()[0] : '';
+      const maxDate = endDates.length > 0 ? endDates.sort().reverse()[0] : '';
+      const fmtShort = (d: string) => d
+        ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : '—';
+
       (g as any).summary = {
         ...g.summary,
         totalCount,
@@ -838,6 +920,8 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
         completedPercent: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
         blockedPercent: totalCount > 0 ? Math.round((bCount / totalCount) * 100) : 0,
         inProgressPercent: totalCount > 0 ? Math.round((ipCount / totalCount) * 100) : 0,
+        startLabel: fmtShort(minDate),
+        endLabel: fmtShort(maxDate),
       };
     }
 
@@ -934,7 +1018,19 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
 
     // ── Group rows (waterfall bars) ──
     const rowHeight = 38;
+    const scaleSubRowH = 32;  // height of each sub-row inside Scale
+    const scaleHeaderH = 30;  // Scale group header row
+    const scaleContainerH = scaleHeaderH + scaleSubBars.length * scaleSubRowH;
+
+    /** Get the total height for a group */
+    const groupHeight = (g: typeof exportGroups[0]) =>
+      g.label === 'Scale' && scaleSubBars.length > 0 ? scaleContainerH : rowHeight;
+
     const groupRows = exportGroups.map((g, gi) => {
+      // Compute top offset
+      let rowTop = 0;
+      for (let i = 0; i < gi; i++) rowTop += groupHeight(exportGroups[i]);
+
       // Summary bar extents (percentages)
       const datedBars = g.bars.filter(b => b.task.start_date);
       const sLeftPct = datedBars.length > 0
@@ -948,7 +1044,61 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
         : 0;
       const sWidthPct = Math.max(0.5, sRightPct - sLeftPct);
 
-      // Segments
+      // Blocked count badge
+      const blockedBadge = g.summary.blockedCount > 0
+        ? `<span class="lbl-stat lbl-stat--blocked">· ${g.summary.blockedCount}b</span>` : '';
+
+      // ── Scale: vertical container with header + 3 sub-rows ──
+      if (g.label === 'Scale' && scaleSubBars.length > 0) {
+        const fmtDate = (d: string) => d
+          ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          : '';
+
+        const subRowsHtml = scaleSubBars.map((sb, si) => {
+          const pct = sb.taskCount > 0 ? Math.round((sb.completedCount / sb.taskCount) * 100) : 0;
+          const pctText = sb.widthPct > 3 ? `<span class="ch-bar-pct">${pct}%</span>` : '';
+          const barRight = sb.leftPct + sb.widthPct;
+          return `
+            <div class="sc-sub-row" style="top:${scaleHeaderH + si * scaleSubRowH}px;height:${scaleSubRowH}px">
+              <div class="sc-sub-label">
+                <span class="sc-sub-dot" style="background:${sb.color}"></span>
+                <span class="sc-sub-name">${this.escapeHtml(sb.label)}</span>
+                <span class="sc-sub-count">${sb.taskCount}</span>
+              </div>
+              <div class="ch-bar-area">
+                <span class="ch-date ch-date--start" style="left:${Math.max(0, sb.leftPct - 0.3)}%">${fmtDate(sb.startDate)}</span>
+                <div class="ch-bar ch-bar--sub" style="left:${sb.leftPct}%;width:${sb.widthPct}%;background:${sb.color}">
+                  ${pctText}
+                </div>
+                <span class="ch-date ch-date--end" style="left:${barRight + 0.3}%">${fmtDate(sb.endDate)}</span>
+              </div>
+            </div>`;
+        }).join('');
+
+        return `
+          <div class="ch-row ch-row--scale" style="top:${rowTop}px;height:${scaleContainerH}px">
+            <!-- Scale header -->
+            <div class="sc-header" style="height:${scaleHeaderH}px">
+              <div class="ch-label" style="height:${scaleHeaderH}px">
+                <span class="ch-chevron">›</span>
+                <span class="ch-dot" style="background:${g.color}"></span>
+                <span class="ch-name">${this.escapeHtml(g.label)}</span>
+                <span class="ch-count">${g.bars.length}</span>
+                <span class="ch-stats">
+                  <span class="lbl-stat lbl-stat--done">${g.summary.completedCount}</span>
+                  <span class="lbl-sep">/</span>
+                  <span>${g.summary.totalCount}</span>
+                  ${blockedBadge}
+                </span>
+              </div>
+              <div class="ch-bar-area"></div>
+            </div>
+            <!-- Sub-rows -->
+            ${subRowsHtml}
+          </div>`;
+      }
+
+      // ── Standard single summary bar ──
       const completedSeg = g.summary.completedPercent > 0
         ? `<div class="ch-seg ch-seg--done" style="width:${g.summary.completedPercent}%"></div>` : '';
       const progressSeg = g.summary.inProgressPercent > 0
@@ -957,19 +1107,12 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
         ? `<div class="ch-seg ch-seg--blocked" style="width:${g.summary.blockedPercent}%"></div>` : '';
       const pctLabel = sWidthPct > 4
         ? `<span class="ch-bar-pct">${g.summary.completedPercent}%</span>` : '';
-
-      // Date labels
       const startLabel = datedBars.length > 0 ? g.summary.startLabel : '';
       const endLabel = datedBars.length > 0 ? g.summary.endLabel : '';
 
-      // Blocked count badge
-      const blockedBadge = g.summary.blockedCount > 0
-        ? `<span class="lbl-stat lbl-stat--blocked">· ${g.summary.blockedCount}b</span>` : '';
-
       return `
-        <div class="ch-row" style="top:${gi * rowHeight}px">
-          <!-- Label side -->
-          <div class="ch-label">
+        <div class="ch-row" style="top:${rowTop}px;height:${rowHeight}px">
+          <div class="ch-label" style="height:${rowHeight}px">
             <span class="ch-chevron">›</span>
             <span class="ch-dot" style="background:${g.color}"></span>
             <span class="ch-name">${this.escapeHtml(g.label)}</span>
@@ -981,7 +1124,6 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
               ${blockedBadge}
             </span>
           </div>
-          <!-- Bar side -->
           <div class="ch-bar-area">
             <span class="ch-date ch-date--start" style="left:${Math.max(0, sLeftPct - 0.3)}%">${startLabel}</span>
             <div class="ch-bar" style="left:${sLeftPct}%;width:${sWidthPct}%">
@@ -993,15 +1135,20 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
         </div>`;
     }).join('');
 
-    const chartHeight = exportGroups.length * rowHeight;
+    // Compute total chart height
+    let chartHeight = 0;
+    for (const g of exportGroups) chartHeight += groupHeight(g);
+
+    // Remove the old scale legend — sub-rows now have their own labels
+    const scaleLegend = '';
 
     // ── Task list rows (compact, column-friendly) ──
     const taskListRows = exportGroups.map(g => {
-      const taskRows = g.bars.map(b => {
+      const pri2color: Record<string, string> = {
+        critical: '#dc2626', high: '#f97316', medium: '#d97706', low: '#6b7280',
+      };
+      const renderTaskRow = (b: WaterfallBar) => {
         const pri = (b.task.priority ?? 'medium').toLowerCase();
-        const priColors: Record<string, string> = {
-          critical: '#dc2626', high: '#f97316', medium: '#d97706', low: '#6b7280',
-        };
         const startStr = b.task.start_date
           ? new Date(b.task.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
           : '—';
@@ -1010,12 +1157,48 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
           : '—';
         return `
           <div class="tl-row">
-            <span class="tl-pri" style="background:${priColors[pri] ?? '#6b7280'}"></span>
+            <span class="tl-pri" style="background:${pri2color[pri] ?? '#6b7280'}"></span>
             <span class="tl-title">${this.escapeHtml(b.task.title)}</span>
             <span class="tl-chip" style="background:${b.statusColor}">${this.escapeHtml(b.statusName)}</span>
             <span class="tl-dates">${startStr} → ${endStr}</span>
           </div>`;
-      }).join('');
+      };
+
+      // For Scale: split tasks by sub-group with colored sub-headers
+      if (g.label === 'Scale' && scaleSubBars.length > 0) {
+        const subGroupBars = new Map<string, WaterfallBar[]>();
+        for (const bar of g.bars) {
+          const typeId = (bar.task as any).type_id as number | undefined;
+          const typeName = typeId ? (typeNameMap.get(typeId) ?? '') : '';
+          const subLabel = SCALE_SUBGROUP_MAP[typeName] ?? 'System Expansion';
+          if (!subGroupBars.has(subLabel)) subGroupBars.set(subLabel, []);
+          subGroupBars.get(subLabel)!.push(bar);
+        }
+        const subSections = scaleSubBars.map(sb => {
+          const bars = subGroupBars.get(sb.label) ?? [];
+          return `
+            <div class="tl-sub-header">
+              <span class="tl-dot" style="background:${sb.color}"></span>
+              <span class="tl-sub-name">${this.escapeHtml(sb.label)}</span>
+              <span class="tl-group-count">${sb.taskCount}</span>
+            </div>
+            ${bars.map(renderTaskRow).join('')}`;
+        }).join('');
+
+        return `
+          <div class="tl-group">
+            <div class="tl-group-header">
+              <span class="tl-dot" style="background:${g.color}"></span>
+              <span class="tl-group-name">${this.escapeHtml(g.label)}</span>
+              <span class="tl-group-count">${g.bars.length}</span>
+              <span class="tl-group-pct">${g.summary.completedPercent}%</span>
+            </div>
+            <div class="tl-body">${subSections}</div>
+          </div>`;
+      }
+
+      // Standard group
+      const taskRows = g.bars.map(renderTaskRow).join('');
 
       return `
         <div class="tl-group">
@@ -1193,6 +1376,59 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
     text-shadow: 0 1px 3px rgba(0,0,0,0.5); z-index: 1; pointer-events: none;
   }
 
+  /* Scale container — vertical stack of header + sub-rows */
+  .ch-row--scale {
+    display: block; /* override flex so sub-rows stack */
+    position: absolute; left: 0; right: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .sc-header {
+    display: flex; width: 100%;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .sc-sub-row {
+    position: absolute; left: 0; right: 0;
+    display: flex;
+    border-bottom: 1px solid rgba(255,255,255,0.025);
+  }
+  .sc-sub-label {
+    width: 260px; min-width: 260px; display: flex; align-items: center;
+    gap: 5px; padding: 0 10px 0 30px;
+    background: #111116;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .sc-sub-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .sc-sub-name {
+    font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.55);
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    letter-spacing: -0.01em;
+  }
+  .sc-sub-count {
+    font-size: 7px; font-weight: 600; color: rgba(255,255,255,0.2);
+    background: #22222b; padding: 1px 4px; border-radius: 4px; flex-shrink: 0;
+  }
+
+  /* Sub-bar styling (positioned within its own row) */
+  .ch-bar--sub {
+    position: absolute; top: 6px; height: 20px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  }
+
+  /* Task list sub-group header (within Scale) */
+  .tl-sub-header {
+    display: flex; align-items: center; gap: 4px;
+    padding: 3px 8px 2px; margin-top: 2px;
+    font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .tl-sub-name {
+    font-size: 7px; font-weight: 600; letter-spacing: 0.03em;
+    text-transform: uppercase; color: rgba(255,255,255,0.35);
+  }
+
   /* Date labels beside bars */
   .ch-date {
     position: absolute; top: 50%; transform: translateY(-50%);
@@ -1329,6 +1565,14 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
     .tl-row { color: #333; border-color: #eee; }
     .tl-dates { color: #999; }
     .tl-chip { color: #fff; }
+    .sc-sub-label { background: #f5f5f5; border-color: #ddd; }
+    .sc-sub-name { color: #333; }
+    .sc-sub-count { background: #e0e0e0; color: #555; }
+    .sc-sub-row { border-color: #eee; }
+    .sc-header { border-color: #ddd; }
+    .ch-bar--sub .ch-bar-pct { color: #fff; }
+    .tl-sub-header { border-color: #eee; }
+    .tl-sub-name { color: #666; }
   }
 </style>
 </head>
@@ -1365,6 +1609,8 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
       ${groupRows}
     </div>
   </div>
+
+  ${scaleLegend}
 
   <!-- Task List -->
   <hr class="section-divider">
