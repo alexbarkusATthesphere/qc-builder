@@ -445,6 +445,18 @@
   border-radius: 1px;
 }
 
+.wf__legend-swatch--milestone {
+  width: 2px;
+  height: 12px;
+  border-radius: 1px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #F59E0B 0, #F59E0B 4px,
+    transparent 4px, transparent 6px
+  );
+  background-color: transparent;
+}
+
 .wf__legend-label {
   font-size: 10px;
   font-weight: 400;
@@ -482,7 +494,7 @@
 }
 
 .wf__labels-header {
-  height: 52px;
+  height: 90px;
   display: flex;
   align-items: center;
   padding: 0 16px;
@@ -665,9 +677,9 @@
   flex-direction: column;
 }
 
-/* Timeline header */
+/* Timeline header — four-tier: Year → Quarter → Month → Events */
 .wf__timeline-header {
-  height: 52px;
+  height: 90px;
   overflow: hidden;
   border-bottom: 1px solid var(--s-border);
   flex-shrink: 0;
@@ -676,6 +688,77 @@
 .wf__timeline-header-inner {
   position: relative;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Each tier row */
+.wf__header-tier {
+  position: relative;
+  width: 100%;
+  border-bottom: 1px solid var(--s-border-subtle);
+}
+
+.wf__header-tier:last-child {
+  border-bottom: none;
+}
+
+.wf__header-tier--year {
+  height: 20px;
+  background: rgba(5, 195, 221, 0.025);
+}
+
+.wf__header-tier--quarter {
+  height: 22px;
+}
+
+.wf__header-tier--month {
+  height: 24px;
+}
+
+.wf__header-tier--events {
+  height: 24px;
+  flex: 0 0 24px;
+  position: relative;
+  border-top: 1px solid var(--s-border-subtle);
+}
+
+/* Year markers */
+.wf__year-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--s-border);
+}
+
+.wf__year-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--s-text-2);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* Quarter markers */
+.wf__quarter-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 8px;
+  border-left: 1px solid var(--s-border-subtle);
+}
+
+.wf__quarter-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--s-text-3);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .wf__month-marker {
@@ -683,16 +766,16 @@
   top: 0;
   height: 100%;
   display: flex;
-  align-items: flex-end;
-  padding: 0 0 10px 12px;
-  border-left: 1px solid var(--s-border);
+  align-items: center;
+  padding: 0 0 0 6px;
+  border-left: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .wf__month-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--s-text-3);
-  letter-spacing: 0.03em;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--s-text-4);
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
@@ -745,21 +828,49 @@
   box-shadow: 0 0 8px rgba(5, 195, 221, 0.3);
 }
 
-.wf__today-label {
+/* Milestone marker line */
+.wf__milestone-line {
   position: absolute;
-  top: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 9px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  z-index: 9;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #F59E0B 0, #F59E0B 6px,
+    transparent 6px, transparent 10px
+  );
+  background-color: transparent;
+  opacity: 0.7;
+}
+
+/* Event labels in the 4th header tier */
+.wf__event-label {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
   font-weight: 700;
-  color: var(--s-blue);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
-  background: var(--s-surface-1);
   padding: 2px 6px;
   border-radius: 3px;
+  z-index: 5;
+}
+
+.wf__event-label--today {
+  color: var(--s-blue);
+  background: var(--s-surface-1);
   border: 1px solid rgba(5, 195, 221, 0.2);
+}
+
+.wf__event-label--milestone {
+  color: #F59E0B;
+  background: var(--s-surface-1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 /* Group row background */

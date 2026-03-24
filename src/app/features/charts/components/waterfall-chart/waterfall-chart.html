@@ -167,6 +167,12 @@
         <span class="wf__legend-swatch wf__legend-swatch--today"></span>
         <span class="wf__legend-label">Today</span>
       </div>
+      @if (milestones().length > 0) {
+        <div class="wf__legend-item">
+          <span class="wf__legend-swatch wf__legend-swatch--milestone"></span>
+          <span class="wf__legend-label">Milestone</span>
+        </div>
+      }
     </div>
 
     <!-- ===== Chart Area ===== -->
@@ -223,16 +229,50 @@
       <!-- Right: Timeline -->
       <div class="wf__timeline">
 
-        <!-- Timeline header (months) -->
+        <!-- Timeline header (Year → Quarter → Month) -->
         <div class="wf__timeline-header" #timelineHeader>
           <div class="wf__timeline-header-inner" [style.width.px]="timelineWidth()">
-            @for (month of months(); track month.label) {
-              <div class="wf__month-marker"
-                   [style.left.px]="month.left"
-                   [style.width.px]="month.width">
-                <span class="wf__month-label">{{ month.label }}</span>
-              </div>
-            }
+            <!-- Year tier -->
+            <div class="wf__header-tier wf__header-tier--year">
+              @for (yr of timelineYears(); track yr.year) {
+                <div class="wf__year-marker"
+                     [style.left.px]="yr.left"
+                     [style.width.px]="yr.width">
+                  <span class="wf__year-label">{{ yr.label }}</span>
+                </div>
+              }
+            </div>
+            <!-- Quarter tier -->
+            <div class="wf__header-tier wf__header-tier--quarter">
+              @for (q of timelineQuarters(); track q.left) {
+                <div class="wf__quarter-marker"
+                     [style.left.px]="q.left"
+                     [style.width.px]="q.width">
+                  <span class="wf__quarter-label">{{ q.label }}</span>
+                </div>
+              }
+            </div>
+            <!-- Month tier -->
+            <div class="wf__header-tier wf__header-tier--month">
+              @for (month of months(); track month.left) {
+                <div class="wf__month-marker"
+                     [style.left.px]="month.left"
+                     [style.width.px]="month.width">
+                  <span class="wf__month-label">{{ month.label }}</span>
+                </div>
+              }
+            </div>
+            <!-- Events tier (Today + Milestones) -->
+            <div class="wf__header-tier wf__header-tier--events">
+              @if (todayVisible()) {
+                <span class="wf__event-label wf__event-label--today"
+                      [style.left.px]="todayPx()">TODAY</span>
+              }
+              @for (m of milestones(); track m.task.id) {
+                <span class="wf__event-label wf__event-label--milestone"
+                      [style.left.px]="m.px">{{ m.shortLabel }}</span>
+              }
+            </div>
           </div>
         </div>
 
@@ -249,9 +289,13 @@
 
             <!-- Today marker -->
             @if (todayVisible()) {
-              <div class="wf__today-line" [style.left.px]="todayPx()">
-                <span class="wf__today-label">Today</span>
-              </div>
+              <div class="wf__today-line" [style.left.px]="todayPx()"></div>
+            }
+
+            <!-- Milestone markers (hiring events) -->
+            @for (m of milestones(); track m.task.id) {
+              <div class="wf__milestone-line" [style.left.px]="m.px"
+                   [style.borderColor]="m.color"></div>
             }
 
             <!-- Groups and bars -->

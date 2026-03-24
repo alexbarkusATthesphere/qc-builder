@@ -74,6 +74,20 @@ interface GroupSummaryBar {
   endLabel: string;
 }
 
+interface TimelineYear {
+  year: number;
+  label: string;
+  left: number;
+  width: number;
+}
+
+interface TimelineQuarter {
+  label: string;   // Q1, Q2, Q3, Q4
+  year: number;
+  left: number;
+  width: number;
+}
+
 interface TimelineMonth {
   label: string;
   left: number;
@@ -86,13 +100,26 @@ interface TimelineWeek {
   label: string;
 }
 
+/** Milestone marker — rendered as a vertical line (like Today) */
+interface MilestoneMarker {
+  task: TaskRead;
+  px: number;
+  label: string;
+  shortLabel: string;
+  color: string;
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 const DAY_PX = 6;
 const ROW_HEIGHT = 36;
-const HEADER_HEIGHT = 52;
+const HEADER_HEIGHT = 90;
+const YEAR_ROW_H = 20;
+const QUARTER_ROW_H = 22;
+const MONTH_ROW_H = 24;
+const EVENT_ROW_H = 24;
 
 const ENV_LABELS: Record<string, string> = {
   dev: 'Development',
@@ -247,7 +274,51 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
 
   timelineWidth = computed(() => this.totalDays() * DAY_PX);
 
-  /** Month markers for the timeline header */
+  /** Year markers for the top tier of the timeline header */
+  timelineYears = computed<TimelineYear[]>(() => {
+    const start = this.timelineStart();
+    const end = this.timelineEnd();
+    const years: TimelineYear[] = [];
+
+    let year = start.getFullYear();
+    while (new Date(year, 0, 1) < end) {
+      const yearStart = new Date(year, 0, 1);
+      const yearEnd = new Date(year + 1, 0, 1);
+      const left = Math.max(0, this.dateToPx(yearStart));
+      const right = Math.min(this.timelineWidth(), this.dateToPx(yearEnd));
+      if (right > left) {
+        years.push({ year, label: String(year), left, width: right - left });
+      }
+      year++;
+    }
+    return years;
+  });
+
+  /** Quarter markers for the middle tier of the timeline header */
+  timelineQuarters = computed<TimelineQuarter[]>(() => {
+    const start = this.timelineStart();
+    const end = this.timelineEnd();
+    const quarters: TimelineQuarter[] = [];
+
+    let year = start.getFullYear();
+    let q = Math.floor(start.getMonth() / 3);  // 0-based quarter index
+
+    while (true) {
+      const qStart = new Date(year, q * 3, 1);
+      if (qStart >= end) break;
+      const qEnd = new Date(year, (q + 1) * 3, 1);
+      const left = Math.max(0, this.dateToPx(qStart));
+      const right = Math.min(this.timelineWidth(), this.dateToPx(qEnd));
+      if (right > left) {
+        quarters.push({ label: `Q${q + 1}`, year, left, width: right - left });
+      }
+      q++;
+      if (q > 3) { q = 0; year++; }
+    }
+    return quarters;
+  });
+
+  /** Month markers for the bottom tier of the timeline header */
   months = computed<TimelineMonth[]>(() => {
     const start = this.timelineStart();
     const end = this.timelineEnd();
@@ -260,7 +331,7 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
       const monthEnd = Math.min(this.timelineWidth(), this.dateToPx(nextMonth));
 
       months.push({
-        label: cursor.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+        label: cursor.toLocaleDateString('en-US', { month: 'short' }),
         left: monthStart,
         width: monthEnd - monthStart,
       });
@@ -300,6 +371,38 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
   todayVisible = computed(() => {
     const px = this.todayPx();
     return px >= 0 && px <= this.timelineWidth();
+  });
+
+  /** IDs of task-types that should render as milestone markers */
+  milestoneTypeIds = computed<Set<number>>(() => {
+    return new Set(
+      this.currentTypes()
+        .filter((t: any) => t.name === 'Staffing & Headcount')
+        .map((t: any) => t.id),
+    );
+  });
+
+  /** Milestone markers — vertical lines on the timeline (hiring events, etc.) */
+  milestones = computed<MilestoneMarker[]>(() => {
+    const typeIds = this.milestoneTypeIds();
+    return this.filteredTasks()
+      .filter(t => {
+        // Match by type_id if available, otherwise fall back to title pattern
+        if (typeIds.size > 0 && (t as any).type_id && typeIds.has((t as any).type_id)) return true;
+        return /^Hire \d+ Junior Developer/i.test(t.title);
+      })
+      .filter(t => t.start_date)
+      .map(t => {
+        const px = this.dateToPx(new Date(t.start_date!));
+        return {
+          task: t,
+          px,
+          label: t.title,
+          shortLabel: t.title.includes('2 Junior') ? 'Hire 2 Jr Devs' : 'Hire 1 Jr Dev',
+          color: '#F59E0B',
+        };
+      })
+      .filter(m => m.px >= 0 && m.px <= this.timelineWidth());
   });
 
   /** Grouped waterfall bars */
@@ -354,11 +457,15 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
         };
       });
 
-    // Group bars
+    // Group bars (exclude milestone tasks — they render as vertical lines)
     const groupBy = this.groupBy();
     const groupMap = new Map<string, WaterfallBar[]>();
+    const milestoneTypeIds = this.milestoneTypeIds();
 
     for (const bar of bars) {
+      // Skip milestones — they are rendered separately as vertical marker lines
+      if (milestoneTypeIds.size > 0 && (bar.task as any).type_id && milestoneTypeIds.has((bar.task as any).type_id)) continue;
+      if (/^Hire \d+ Junior Developer/i.test(bar.task.title)) continue;
       let key: string;
       if (groupBy === 'component') {
         key = bar.componentName;
@@ -690,54 +797,156 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
       return aOrder - bOrder;
     });
 
-    // ── Timeline geometry (scaled to fit ~700px width) ──
+    // ── Timeline geometry (percentage-based to fill container) ──
     const tStart = this.timelineStart().getTime();
     const tEnd = this.timelineEnd().getTime();
     const totalMs = tEnd - tStart;
-    const chartWidth = 700; // px for the timeline area
-    const pxPerMs = totalMs > 0 ? chartWidth / totalMs : 0;
 
-    const toPx = (date: Date): number =>
-      Math.round((date.getTime() - tStart) * pxPerMs);
+    /** Convert a Date to a percentage position within the timeline */
+    const toPct = (date: Date): number =>
+      totalMs > 0 ? ((date.getTime() - tStart) / totalMs) * 100 : 0;
 
-    // Month markers
-    const monthMarkers: string[] = [];
-    let cursor = new Date(this.timelineStart().getFullYear(), this.timelineStart().getMonth(), 1);
+    // ── Filter milestone tasks out of groups ──
+    const milestoneTypeIds = this.milestoneTypeIds();
+    const isMilestone = (t: TaskRead): boolean => {
+      if (milestoneTypeIds.size > 0 && (t as any).type_id && milestoneTypeIds.has((t as any).type_id)) return true;
+      return /^Hire \d+ Junior Developer/i.test(t.title);
+    };
+    const exportGroups = sortedGroups.map(g => ({
+      ...g,
+      bars: g.bars.filter(b => !isMilestone(b.task)),
+    }));
+    // Recompute summary counts after filtering
+    const blockedId = this.statuses().find(s => s.name === 'Blocked')?.id;
+    const inProgressId = this.statuses().find(s => s.name === 'In Progress')?.id;
+    const inReviewId = this.statuses().find(s => s.name === 'In Review')?.id;
+    const terminalIds = new Set(this.statuses().filter(s => s.is_terminal).map(s => s.id));
+
+    for (const g of exportGroups) {
+      const totalCount = g.bars.length;
+      const completedCount = g.bars.filter(b => b.isCompleted).length;
+      const bCount = blockedId ? g.bars.filter(b => b.task.status_id === blockedId).length : 0;
+      const ipCount = g.bars.filter(b =>
+        b.task.status_id === inProgressId || b.task.status_id === inReviewId
+      ).length;
+      (g as any).summary = {
+        ...g.summary,
+        totalCount,
+        completedCount,
+        blockedCount: bCount,
+        inProgressCount: ipCount,
+        completedPercent: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
+        blockedPercent: totalCount > 0 ? Math.round((bCount / totalCount) * 100) : 0,
+        inProgressPercent: totalCount > 0 ? Math.round((ipCount / totalCount) * 100) : 0,
+      };
+    }
+
+    // ── Milestone markers for export ──
+    const exportMilestones = this.filteredTasks()
+      .filter(t => isMilestone(t) && t.start_date)
+      .map(t => ({
+        pct: toPct(new Date(t.start_date!)),
+        label: t.title,
+        shortLabel: t.title.includes('2 Junior') ? 'Hire 2 Jr Devs' : 'Hire 1 Jr Dev',
+      }))
+      .filter(m => m.pct >= 0 && m.pct <= 100);
+
+    // ── Three-tier + events timeline header: Year → Quarter → Month → Events ──
     const endDate = this.timelineEnd();
+    const yearMarkers: string[] = [];
+    const quarterMarkers: string[] = [];
+    const monthMarkers: string[] = [];
+
+    // Years (centered labels)
+    let yearCursor = this.timelineStart().getFullYear();
+    while (new Date(yearCursor, 0, 1) < endDate) {
+      const yStart = new Date(yearCursor, 0, 1);
+      const yEnd = new Date(yearCursor + 1, 0, 1);
+      const left = Math.max(0, toPct(yStart));
+      const right = Math.min(100, toPct(yEnd));
+      if (right > left) {
+        yearMarkers.push(
+          `<div class="ch-year" style="left:${left}%;width:${right - left}%">
+            <span class="ch-year-label">${yearCursor}</span>
+          </div>`
+        );
+      }
+      yearCursor++;
+    }
+
+    // Quarters
+    let qYear = this.timelineStart().getFullYear();
+    let qIdx = Math.floor(this.timelineStart().getMonth() / 3);
+    while (true) {
+      const qStart = new Date(qYear, qIdx * 3, 1);
+      if (qStart >= endDate) break;
+      const qEnd = new Date(qYear, (qIdx + 1) * 3, 1);
+      const left = Math.max(0, toPct(qStart));
+      const right = Math.min(100, toPct(qEnd));
+      if (right > left) {
+        quarterMarkers.push(
+          `<div class="ch-quarter" style="left:${left}%;width:${right - left}%">
+            <span class="ch-quarter-label">Q${qIdx + 1}</span>
+          </div>`
+        );
+      }
+      qIdx++;
+      if (qIdx > 3) { qIdx = 0; qYear++; }
+    }
+
+    // Months
+    let cursor = new Date(this.timelineStart().getFullYear(), this.timelineStart().getMonth(), 1);
     while (cursor < endDate) {
       const nextMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
-      const left = Math.max(0, toPx(cursor));
-      const right = Math.min(chartWidth, toPx(nextMonth));
-      const label = cursor.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      const left = Math.max(0, toPct(cursor));
+      const right = Math.min(100, toPct(nextMonth));
+      const label = cursor.toLocaleDateString('en-US', { month: 'short' });
       monthMarkers.push(
-        `<div class="ch-month" style="left:${left}px;width:${right - left}px">
+        `<div class="ch-month" style="left:${left}%;width:${right - left}%">
           <span class="ch-month-label">${label}</span>
         </div>`
       );
       cursor = nextMonth;
     }
 
-    // Today marker
-    const todayPx = toPx(new Date());
-    const todayVisible = todayPx >= 0 && todayPx <= chartWidth;
+    // Events tier (Today + milestone markers)
+    const todayPct = toPct(new Date());
+    const todayVisible = todayPct >= 0 && todayPct <= 100;
+    const eventMarkers: string[] = [];
+    if (todayVisible) {
+      eventMarkers.push(
+        `<span class="ch-event-label ch-event-label--today" style="left:${todayPct}%">TODAY</span>`
+      );
+    }
+    for (const m of exportMilestones) {
+      eventMarkers.push(
+        `<span class="ch-event-label ch-event-label--milestone" style="left:${m.pct}%">${this.escapeHtml(m.shortLabel)}</span>`
+      );
+    }
+
+    // Today line + milestone lines in body
     const todayHtml = todayVisible
-      ? `<div class="ch-today" style="left:${todayPx}px"><span class="ch-today-label">TODAY</span></div>`
+      ? `<div class="ch-today" style="left:${todayPct}%"></div>`
       : '';
+    const milestoneLines = exportMilestones.map(m =>
+      `<div class="ch-milestone" style="left:${m.pct}%"></div>`
+    ).join('');
 
     // ── Group rows (waterfall bars) ──
     const rowHeight = 38;
-    const groupRows = sortedGroups.map((g, gi) => {
-      // Summary bar extents
-      const sLeft = g.summary.left > 0
-        ? Math.round((Math.min(...g.bars.map(b => new Date(b.task.start_date!).getTime())) - tStart) * pxPerMs)
+    const groupRows = exportGroups.map((g, gi) => {
+      // Summary bar extents (percentages)
+      const datedBars = g.bars.filter(b => b.task.start_date);
+      const sLeftPct = datedBars.length > 0
+        ? Math.max(0, toPct(new Date(Math.min(...datedBars.map(b => new Date(b.task.start_date!).getTime())))))
         : 0;
-      const sRight = g.bars.length > 0
-        ? Math.round((Math.max(...g.bars.map(b => {
+      const sRightPct = datedBars.length > 0
+        ? Math.min(100, toPct(new Date(Math.max(...datedBars.map(b => {
             const end = b.task.due_date ?? b.task.start_date;
             return end ? new Date(end).getTime() : tStart;
-          })) - tStart) * pxPerMs)
+          })))))
         : 0;
-      const sWidth = Math.max(8, sRight - sLeft);
+      const sWidthPct = Math.max(0.5, sRightPct - sLeftPct);
 
       // Segments
       const completedSeg = g.summary.completedPercent > 0
@@ -746,12 +955,12 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
         ? `<div class="ch-seg ch-seg--progress" style="width:${g.summary.inProgressPercent}%"></div>` : '';
       const blockedSeg = g.summary.blockedPercent > 0
         ? `<div class="ch-seg ch-seg--blocked" style="width:${g.summary.blockedPercent}%"></div>` : '';
-      const pctLabel = sWidth > 60
+      const pctLabel = sWidthPct > 4
         ? `<span class="ch-bar-pct">${g.summary.completedPercent}%</span>` : '';
 
       // Date labels
-      const startLabel = g.bars.length > 0 ? g.summary.startLabel : '';
-      const endLabel = g.bars.length > 0 ? g.summary.endLabel : '';
+      const startLabel = datedBars.length > 0 ? g.summary.startLabel : '';
+      const endLabel = datedBars.length > 0 ? g.summary.endLabel : '';
 
       // Blocked count badge
       const blockedBadge = g.summary.blockedCount > 0
@@ -774,20 +983,20 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
           </div>
           <!-- Bar side -->
           <div class="ch-bar-area">
-            <span class="ch-date ch-date--start" style="left:${Math.max(0, sLeft - 4)}px">${startLabel}</span>
-            <div class="ch-bar" style="left:${sLeft}px;width:${sWidth}px">
+            <span class="ch-date ch-date--start" style="left:${Math.max(0, sLeftPct - 0.3)}%">${startLabel}</span>
+            <div class="ch-bar" style="left:${sLeftPct}%;width:${sWidthPct}%">
               ${completedSeg}${progressSeg}${blockedSeg}
               ${pctLabel}
             </div>
-            <span class="ch-date ch-date--end" style="left:${sRight + 6}px">${endLabel}</span>
+            <span class="ch-date ch-date--end" style="left:${sRightPct + 0.4}%">${endLabel}</span>
           </div>
         </div>`;
     }).join('');
 
-    const chartHeight = sortedGroups.length * rowHeight;
+    const chartHeight = exportGroups.length * rowHeight;
 
     // ── Task list rows (compact, column-friendly) ──
-    const taskListRows = sortedGroups.map(g => {
+    const taskListRows = exportGroups.map(g => {
       const taskRows = g.bars.map(b => {
         const pri = (b.task.priority ?? 'medium').toLowerCase();
         const priColors: Record<string, string> = {
@@ -864,20 +1073,66 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
     overflow: hidden;
   }
 
-  /* Month header */
-  .ch-header {
-    position: relative; height: 32px;
+  /* Three-tier timeline header */
+  .ch-header-stack {
     margin-left: 260px; /* label column width */
     border-bottom: 1px solid rgba(255,255,255,0.06);
   }
-  .ch-month {
+  .ch-header {
+    position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .ch-header:last-child { border-bottom: none; }
+  .ch-header--year { height: 20px; background: rgba(255,255,255,0.02); }
+  .ch-header--quarter { height: 20px; }
+  .ch-header--month { height: 22px; }
+  .ch-header--events {
+    height: 22px; position: relative;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .ch-year {
     position: absolute; top: 0; height: 100%;
-    display: flex; align-items: flex-end; padding: 0 0 6px 8px;
+    display: flex; align-items: center; justify-content: center;
+    border-left: 1px solid rgba(255,255,255,0.08);
+  }
+  .ch-year-label {
+    font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5);
+    letter-spacing: 0.04em; white-space: nowrap;
+  }
+  .ch-quarter {
+    position: absolute; top: 0; height: 100%;
+    display: flex; align-items: center; padding: 0 0 0 6px;
     border-left: 1px solid rgba(255,255,255,0.06);
   }
+  .ch-quarter-label {
+    font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.35);
+    letter-spacing: 0.04em; white-space: nowrap;
+  }
+  .ch-month {
+    position: absolute; top: 0; height: 100%;
+    display: flex; align-items: center; padding: 0 0 0 4px;
+    border-left: 1px solid rgba(255,255,255,0.04);
+  }
   .ch-month-label {
-    font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.3);
-    letter-spacing: 0.03em; white-space: nowrap;
+    font-size: 7px; font-weight: 500; color: rgba(255,255,255,0.25);
+    letter-spacing: 0.02em; white-space: nowrap;
+  }
+
+  /* Event labels (4th tier) */
+  .ch-event-label {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    font-size: 7px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; white-space: nowrap;
+    padding: 2px 5px; border-radius: 3px;
+  }
+  .ch-event-label--today {
+    color: #05C3DD; background: rgba(5,195,221,0.1);
+    border: 1px solid rgba(5,195,221,0.2);
+  }
+  .ch-event-label--milestone {
+    color: #F59E0B; background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.2);
   }
 
   /* Rows */
@@ -947,19 +1202,32 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
   .ch-date--start { text-align: right; transform: translateY(-50%) translateX(-100%); }
   .ch-date--end {}
 
+  /* Lines wrapper — spans the bar area only */
+  .ch-lines {
+    position: absolute; top: 0; bottom: 0;
+    left: 260px; right: 0;
+    pointer-events: none; z-index: 10;
+  }
+
   /* Today line */
   .ch-today {
     position: absolute; top: 0; bottom: 0; width: 2px;
     background: #05C3DD; z-index: 10;
-    margin-left: 260px; /* offset for label column */
     box-shadow: 0 0 8px rgba(5,195,221,0.3);
   }
-  .ch-today-label {
-    position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
-    font-size: 8px; font-weight: 700; color: #05C3DD;
-    letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
-    background: #0b0b0f; padding: 2px 5px; border-radius: 3px;
-    border: 1px solid rgba(5,195,221,0.2);
+
+  /* Milestone line */
+  .ch-milestone {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    z-index: 9;
+    box-shadow: 0 0 8px rgba(245,158,11,0.25);
+    opacity: 0.7;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      #F59E0B 0, #F59E0B 6px,
+      transparent 6px, transparent 10px
+    );
+    background-color: transparent;
   }
 
   /* Week gridlines */
@@ -1024,7 +1292,13 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
     .st-v--blk { color: #dc2626; } .st-l { color: #999; }
     .st-d { background: #ddd; }
     .chart-wrap { background: #fafafa; border-color: #ddd; }
-    .ch-header { border-color: #ddd; }
+    .ch-header-stack { border-color: #ddd; }
+    .ch-header { border-color: #e5e5e5; }
+    .ch-header--year { background: #f5f5f5; }
+    .ch-year { border-color: #ccc; }
+    .ch-year-label { color: #333; }
+    .ch-quarter { border-color: #ddd; }
+    .ch-quarter-label { color: #666; }
     .ch-month { border-color: #e5e5e5; }
     .ch-month-label { color: #999; }
     .ch-label { background: #f0f0f0; border-color: #ddd; }
@@ -1040,7 +1314,9 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
     .ch-bar-pct { color: #fff; }
     .ch-date { color: #bbb; }
     .ch-today { background: #0891b2; }
-    .ch-today-label { background: #fafafa; color: #0891b2; border-color: rgba(8,145,178,0.3); }
+    .ch-event-label--today { background: #fafafa; color: #0891b2; border-color: rgba(8,145,178,0.3); }
+    .ch-event-label--milestone { background: #fafafa; color: #b45309; border-color: rgba(180,83,9,0.3); }
+    .ch-milestone { background-image: repeating-linear-gradient(to bottom, #b45309 0, #b45309 6px, transparent 6px, transparent 10px); }
     .ch-grid { background: rgba(0,0,0,0.04); }
     .ch-row { border-color: #eee; }
     .section-divider { border-color: #ddd; }
@@ -1075,9 +1351,17 @@ export class WaterfallChartComponent implements OnInit, AfterViewInit {
 
   <!-- Waterfall Chart -->
   <div class="chart-wrap">
-    <div class="ch-header">${monthMarkers.join('')}</div>
+    <div class="ch-header-stack">
+      <div class="ch-header ch-header--year">${yearMarkers.join('')}</div>
+      <div class="ch-header ch-header--quarter">${quarterMarkers.join('')}</div>
+      <div class="ch-header ch-header--month">${monthMarkers.join('')}</div>
+      <div class="ch-header ch-header--events">${eventMarkers.join('')}</div>
+    </div>
     <div class="ch-body" style="position:relative">
-      ${todayHtml}
+      <div class="ch-lines">
+        ${todayHtml}
+        ${milestoneLines}
+      </div>
       ${groupRows}
     </div>
   </div>
